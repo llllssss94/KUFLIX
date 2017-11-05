@@ -26,10 +26,6 @@ class guiHandler(object):
         dialog.ui.setupUi(dialog)
         dialog.exec_()
         dialog.show()
-        dialog.ui.subList.itemActivated.connect(self.test)
-
-    def test(self, item):
-
 
     def goRecentList(self):
         dialog = QtWidgets.QDialog()
