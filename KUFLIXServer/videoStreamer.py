@@ -1,47 +1,47 @@
 import socket
 import cv2
 
-UDP_IP = "127.0.0.1"
-UDP_PORT = 5005
+class videoStreamer(object):
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    def streaming(self):
+        UDP_IP = "127.0.0.1"
+        UDP_PORT = 5005
 
-sock.bind((UDP_IP, UDP_PORT))
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.bind((UDP_IP, UDP_PORT))
 
-capture = cv2.VideoCapture("SampleVideo_1280x720_1mb.mp4")
+        self.capture = cv2.VideoCapture("SampleVideo_1280x720_1mb.mp4")
+        self.frameNum = int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
+        print("number of frames", self.frameNum)
 
-frameNum = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+        data, self.clntAddr = self.sock.recvfrom(1024)
+        data = data.decode("utf-8", "ignore")
+        print(data)
+        data = bin(self.frameNum)
+        data = data.encode("utf-8")
+        self.sock.sendto(data, self.clntAddr)
 
-print("number of frames", frameNum)
+        self.sendFrame()
 
-data, clntAddr = sock.recvfrom(1024)
+        self.sock.close()
 
-data = data.decode("utf-8", "ignore")
+    def sendFrame(self):
 
-print(data)
+        for i in range(0, self.frameNum):
+            ret, data = cv2.VideoCapture.read(self.capture)
 
-data = bin(frameNum)
+            cv2.imwrite("./tmp/temp.png", data)
 
-data = data.encode("utf-8")
+            f = open("./tmp/temp.png", "rb")
 
-sock.sendto(data, clntAddr)
+            data = f.read(1024)
+            while(data):
+                self.sock.sendto(data, self.clntAddr)
+                data = f.read(1024)
+            self.sock.sendto("EOF".encode("utf-8"), self.clntAddr)
 
-data = "test.png"
+            f.close()
 
-data = data.encode("utf-8")
-
-sock.sendto(data, clntAddr)
-
-ret, data = cv2.VideoCapture.read(capture)
-
-cv2.imwrite("test.png", data)
-
-f = open("test.png", "rb")
-
-data = f.read(1024)
-while(data):
-    sock.sendto(data, clntAddr)
-    data = f.read(1024)
-
-f.close()
-sock.close()
+if __name__ == "__main__":
+    streamer = videoStreamer()
+    streamer.streaming()

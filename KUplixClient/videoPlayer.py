@@ -1,37 +1,53 @@
 import socket
+import cv2
 
-UDP_IP = "127.0.0.1"
-UDP_PORT = 5005
+class videoPlayer(object):
 
-server_address = (UDP_IP, UDP_PORT)
+    def __init__(self, video_id = None):
+        UDP_IP = "127.0.0.1"
+        UDP_PORT = 5005
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server_address = (UDP_IP, UDP_PORT)
 
-message = "hi"
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-message = message.encode("utf-8")
+        message = "hi"
 
-send = sock.sendto(message, server_address)
+        message = message.encode("utf-8")
 
-data, address = sock.recvfrom(1024)
+        self.sock.sendto(message, server_address)
 
+        data, address = self.sock.recvfrom(1024)
 
-data = data.decode("utf-8", "ignore")
+        data = data.decode("utf-8", "ignore")
 
-data = int(data, 2)
+        self.frameNum = int(data, 2)
 
-print("echo = ", data)
+        print("echo = ", self.frameNum)
 
-data, address = sock.recvfrom(1024)
+        self.writer = cv2.VideoWriter("LiveStream.avi", cv2.VideoWriter_fourcc('D','I','V','X'), 20, (1280, 720))
 
-data = data.decode("utf-8", "ignore")
+    def requestFrame(self):
 
-f = open(data, "wb")
+        f = open("./tmp/temp.png", "wb")
 
-data, address = sock.recvfrom(1024)
+        data, address = self.sock.recvfrom(1024)
+        while(data):
+            f.write(data)
+            data, address = self.sock.recvfrom(1024)
+            if data == "EOF".encode("utf-8"):
+                break
+        f.close()
 
-while(data):
-    f.write(data)
-    data, address = sock.recvfrom(1024)
-f.close()
-sock.close()
+        frame = cv2.imread("./tmp/temp.png")
+
+        self.writer.write(frame)
+
+    def receiving(self):
+        for i in range(0, self.frameNum):
+            self.requestFrame()
+        self.sock.close()
+
+if __name__ == "__main__":
+    player = videoPlayer()
+    player.receiving()
