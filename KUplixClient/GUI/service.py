@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'service.ui'
 #
-# Created by: PyQt5 UI code generator 5.5.1
+# Created by: PyQt5 UI code generator 5.9
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_service(object):
     def setupUi(self, service):
         service.setObjectName("service")
-        service.resize(1048, 600)
+        service.resize(1063, 600)
         self.centralwidget = QtWidgets.QWidget(service)
         self.centralwidget.setObjectName("centralwidget")
         self.widget = QtWidgets.QWidget(self.centralwidget)
@@ -135,7 +135,7 @@ class Ui_service(object):
         self.thumnail12.setObjectName("thumnail12")
         service.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(service)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1048, 23))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1063, 23))
         self.menubar.setObjectName("menubar")
         service.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(service)
