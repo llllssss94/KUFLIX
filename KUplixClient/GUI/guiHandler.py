@@ -13,7 +13,7 @@ class guiHandler(object):
     def login(self, ui):
         id = ui.id.toPlainText()
         passwd = ui.passwd.toPlainText()
-        self.system.request(self.system.protocolGenerator(0, [id, passwd]))
+        self.system.loginRequest(self.system.protocolGenerator(0, 0, [id, passwd]))
         self.loginSuccess()
 
     def join(self, ui):
@@ -21,12 +21,30 @@ class guiHandler(object):
         passwd = ui.joinINPUTPASSWD.toPlainText()
         name = ui.joinINPUTNAME.toPlainText()
         age = ui.joinINPUTAGE.toPlainText()
-        self.system.request(self.system.protocolGenerator(1, [id, passwd, name, age]))
+        self.system.loginRequest(self.system.protocolGenerator(0, 1, [id, passwd, name, age]))
         self.joinSave()
 
     def loginSuccess(self):
         ui = service.Ui_service()
         ui.setupUi(self.Form)
+
+        ui.ID_lable.setText(self.system.id)
+        ui.NAME_lable.setText(self.system.name)
+        ui.RANK_label.setText(self.system.name)
+        ui.thumnail1.setText(self.system.tmList[0])
+        ui.thumnail2.setText(self.system.tmList[1])
+        ui.thumnail3.setText(self.system.tmList[2])
+        ui.thumnail4.setText(self.system.tmList[3])
+        ui.thumnail5.setText(self.system.tmList[4])
+        ui.thumnail6.setText(self.system.tmList[5])
+        ui.thumnail7.setText(self.system.tmList[6])
+        ui.thumnail8.setText(self.system.tmList[7])
+        ui.thumnail9.setText(self.system.tmList[8])
+        ui.thumnail10.setText(self.system.tmList[9])
+        ui.thumnail11.setText(self.system.tmList[10])
+        ui.thumnail12.setText(self.system.tmList[11])
+
+
         ui.logout.clicked.connect(lambda: self.goBack())
         ui.menu.activated.connect(lambda: self.hadleCombo(ui))
 
@@ -68,11 +86,11 @@ class guiHandler(object):
         ui.join.clicked.connect(lambda : self.goToJoin())
         ui.login.clicked.connect(lambda: self.login(ui))
 
-def startProgram(object):
+def startProgram(system):
     import sys
     app = QtWidgets.QApplication(sys.argv)
     Form = QtWidgets.QMainWindow()
-    handle = guiHandler(Form, object)
+    handle = guiHandler(Form, system)
     Form.show()
     sys.exit(app.exec_())
 
