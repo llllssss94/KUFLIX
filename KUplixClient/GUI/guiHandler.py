@@ -3,6 +3,7 @@ from GUI import join, login, service, subscribeList, recentList
 
 class guiHandler(object):
     def __init__(self, Form, system):
+        self.searchEnable = 0 #0 is unavailable
         self.system = system
         self.Form = Form
         ui = login.Ui_KUFLIX()
@@ -13,16 +14,18 @@ class guiHandler(object):
     def login(self, ui):
         id = ui.id.toPlainText()
         passwd = ui.passwd.toPlainText()
-        self.system.loginRequest(self.system.protocolGenerator(0, 0, [id, passwd]))
-        self.loginSuccess()
+        if self.system.loginRequest(self.system.protocolGenerator(0, 0, [id, passwd])) != "nop":
+            self.loginSuccess()
+        # login fail popup
 
     def join(self, ui):
         id = ui.joinINPUTID.toPlainText()
         passwd = ui.joinINPUTPASSWD.toPlainText()
         name = ui.joinINPUTNAME.toPlainText()
         age = ui.joinINPUTAGE.toPlainText()
-        self.system.loginRequest(self.system.protocolGenerator(0, 1, [id, passwd, name, age]))
-        self.joinSave()
+        if self.system.loginRequest(self.system.protocolGenerator(0, 1, [id, passwd, name, age])) != "nop":
+            self.joinSave()
+        # join fail popup
 
     def loginSuccess(self):
         ui = service.Ui_service()
@@ -47,6 +50,16 @@ class guiHandler(object):
 
         ui.logout.clicked.connect(lambda: self.goBack())
         ui.menu.activated.connect(lambda: self.hadleCombo(ui))
+        ui.searchButton.clicked.connect(lambda: self.requestSearch(ui))
+        self.searchEnable = 1
+
+    def requestSearch(self, ui):
+        keyword = ui.search.toPlainText()
+        self.system.searchList = []
+        result = self.system.mainRequest(self.system.protocolGenerator(1, 2, [keyword, self.system.uid]))
+        ui.searchResult.clear()
+        for i in range(0, result.__len__()):
+            ui.searchResult.append(result[i][2])
 
     def hadleCombo(self, ui):
         if ui.menu.currentIndex() != 1:
@@ -85,6 +98,7 @@ class guiHandler(object):
         ui.setupUi(self.Form)
         ui.join.clicked.connect(lambda : self.goToJoin())
         ui.login.clicked.connect(lambda: self.login(ui))
+        self.searchEnable = 0
 
 def startProgram(system):
     import sys

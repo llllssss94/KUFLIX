@@ -43,28 +43,67 @@ class loginServer(object):
 
         if request[:2] == "00":     ##respond uid
             #db check~~ and get uid
-            msg = self.protocolGenerator(0, "8100", "1")
-            clntSock.send(bytes(msg, "utf-8"))
+            inputID = msgList[1]
+            inputPW = msgList[2]
+            dbResponse = self.DBcommunicator(self.sqlGenerator(0, [inputID, ]))
+            if dbResponse[0][0] == inputPW:
+                print("login success")
+                msg = self.protocolGenerator(0, "8100", "1")
+                clntSock.send(bytes(msg, "utf-8"))
+            else:
+                msg = self.protocolGenerator(0, "0000", "0000")
+                clntSock.send(bytes(msg, "utf-8"))
+                print("login failed")
         else:   ##respond join result
             id = msgList[1]
             passwd = msgList[2]
             name = msgList[3]
             age = msgList[4]
-            # db insert new user
+            if int(age) > 18 :
+                rank = "0"
+            else:
+                rank = "1"
+
+            try:
+                if int(self.DBcommunicator(self.sqlGenerator(1, [id,]))[0][0]) == 0:
+                    userNum = self.DBcommunicator(self.sqlGenerator(2))
+                    userNum = str(int(userNum[0][0]) + 1)
+                    self.DBcommunicator(self.sqlGenerator(3, [userNum, id, passwd, name, age, rank]))
+                    msg = self.protocolGenerator(1, "1", )
+                    clntSock.send(bytes(msg, "utf-8"))
+                else:
+                    print("ID already exists.")
+                    msg = self.protocolGenerator(1, "0", )
+                    clntSock.send(bytes(msg, "utf-8"))
+            except cx_Oracle.DatabaseError as e:
+                print(e)
+
             msg = self.protocolGenerator(1, "1")
             clntSock.send(bytes(msg, "utf-8"))
         clntSock.close()
 
-    def sqlGenerator(self, type = 0):
+    def sqlGenerator(self, type = 0, msgList = []):
         if type == 0:   #chaeck login
-            sql = "SELECT memberid, age, rank FROM members"
-            self.DBcommunicator(sql)
-        elif type == 1: #regester new user
-            sql = "SELECT contentsname FROM videos WHERE cid IN (SELECT cid FROM feturedcontent)"
-            self.DBcommunicator(sql)
+            sql = "SELECT hashPW FROM members WHERE memberid = '" + msgList[0] + "'"
+            return sql
+        elif type == 1:
+            sql = "SELECT count(*) FROM members WHERE memberid = '" + msgList[0] + "'"
+            return sql
+        elif type == 2:
+            sql = "SELECT count(*) FROM members"
+            return sql
+        elif type == 3: #regester new user
+            sql = "INSERT INTO members(mid, memberid, hashPW, membername, age, rank) VALUES ('" + msgList[0] + "', '" + msgList[1] + "', '" + msgList[2] + "', '" + msgList[3] + "', '" + msgList[4] + "', '" + msgList[5] + "')"
+            return sql
 
     def DBcommunicator(self, sql = ""):
         self.cursor.execute(sql)
+        try:
+            result = self.cursor.fetchall()
+            return result
+        except cx_Oracle.InterfaceError as e:
+            self.cursor.execute("COMMIT")
+            print("update")
 
 if __name__ == "__main__":
     chattingServer = loginServer()

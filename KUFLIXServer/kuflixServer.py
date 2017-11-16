@@ -1,6 +1,7 @@
 import socket
 import threading
 import cx_Oracle
+import pickle
 
 class kufilxServer(object):
     def __init__(self):
@@ -18,19 +19,18 @@ class kufilxServer(object):
         s.bind((HOST, PORT))
         s.listen(1)
 
-        self.sqlGenerator(1)
+        self.DBcommunicator(self.sqlGenerator(1))
 
         while True:
             self.conn, self.addr = s.accept()
 
             print('Connected by', self.addr)
 
-            self.conn.send("uid".encode("utf-8"))
-            print("uid request")
-
-            data = self.conn.recv(1024)     ##when first connect, server request to client uid, client respond to server
+            data = self.conn.recv(1024)
             uid = data.decode("utf-8", "ignore")
             print("uid = ", uid)
+
+            self.conn.send(bytes("ack", "utf-8"))
 
             self.connectionList[self.clientNum] = [self.conn, uid]
             threading._start_new_thread(self.listenClientRequest, (self.connectionList[self.clientNum][0],))
@@ -53,7 +53,7 @@ class kufilxServer(object):
     def listenClientRequest(self, clntSock):
         while True:
             request = clntSock.recv(1024)
-            request = request.decode("utf-8", "ignore")
+            request = pickle.loads(request)
             print("request :" , request)
 
             if request[:2] == "00": #request string info of first page
@@ -65,7 +65,7 @@ class kufilxServer(object):
                 self.agentHandler(1, msg)
             elif request[:2] == "10":   #request search
                 msg = request[2:]
-                self.search(msg)
+                self.search(clntSock, msg)
             elif request[:2] == "11":   #request streaming
                 msg = request[2:]
                 self.agentHandler(2, msg)
@@ -81,36 +81,49 @@ class kufilxServer(object):
             #select id, name ,rank info from database with uid
             print("info request")
             msg = self.protocolGenerator(0, ["000", "yourID"])
-            clntSock.send(bytes(msg, "utf-8"))
+            clntSock.send(pickle.dumps(msg))
         else:   #without uid
             #select fetured thumnail's name
             print("thum request")
             msg = self.protocolGenerator(0, ["101", "thumnailName1"])
-            clntSock.send(bytes(msg, "utf-8"))
+            clntSock.send(pickle.dumps(msg))
 
     def search(self, clntSock, keyword = None):
         #select search result with keyword
-        result = "searching result"
-        clntSock.send(bytes(result, "utf-8"))
+        keyword = keyword.split(",")[1]
+        dbResponse = self.DBcommunicator(self.sqlGenerator(2, [keyword,]))
+        print(dbResponse)
 
-    def sqlGenerator(self, type = 0):
+        for i in range(0, dbResponse.__len__()):
+            msg = str(dbResponse[i][0]) + "," + dbResponse[i][1]
+            print(i, "and", dbResponse.__len__())
+            if i + 1 == dbResponse.__len__():
+                msg = self.protocolGenerator(2, [msg, "1"])
+            else :
+                msg = self.protocolGenerator(2, [msg, "0"])
+            print(msg)
+            clntSock.send(pickle.dumps(msg))
+            clntSock.recv(1024)
+
+    def sqlGenerator(self, type = 0, msgList = []):
         if type == 0:   #get profile info
             sql = "SELECT memberid, age, rank FROM members"
-            self.cursor.execute(sql)
-            for result in self.cursor:
-                print(result)
+            return sql
         elif type == 1: #get thumnail info
             sql = "SELECT contentsname FROM videos WHERE cid IN (SELECT cid FROM feturedcontent)"
-            self.cursor.execute(sql)
-            for result in self.cursor:
-                print(result)
-        elif type == 2:
-            print("delete")
+            return sql
+        elif type == 2: #search result
+            sql = "SELECT cid, contentsname FROM videos WHERE contentsname LIKE '%" + msgList[0] + "%'"
+            return sql
         elif type == 3:
+            print("delete")
+        elif type == 4:
             print("update")
 
     def DBcommunicator(self, sql = ""):
-        print("sq")
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        return result
 
     def agentHandler(self, type = 0, request = ""):
         print("mka")

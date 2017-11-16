@@ -1,5 +1,6 @@
 import socket
 import threading
+import pickle
 
 class kuflixClient(object):
     def __init__(self):
@@ -18,19 +19,18 @@ class kuflixClient(object):
                 msg = "01" + "," + msgList[0] + "," + msgList[1] + "," + msgList[2] + "," + msgList[3]
                 return msg
         else:   #main mode
-            if type == 0:  # 00 ##[00 | LABEL | UID]
+            if type == 0:  # 00 ##[00 | LABEL | UID]    #first page info
                 msg = "00" + "," + msgList[0] + "," + msgList[1]
                 return msg
-            elif type == 1:  # 01 ##[01 | LABEL | UID]
+            elif type == 1:  # 01 ##[01 | LABEL | UID]  #thumnail file transfer request
                 msg = "01" + "," + msgList[0] + "," + msgList[1]
                 return msg
-            elif type == 2:  # 10 ##[10 | MESSAGE | UID]
+            elif type == 2:  # 10 ##[10 | MESSAGE | UID]    #request search
                 msg = "10" + "," + msgList[0] + "," + msgList[1]
                 return msg
-            else:  # 11 ##[11 | VIDEO_ID | UID]
+            else:  # 11 ##[11 | VIDEO_ID | UID]     #request video streaming
                 msg = "11" + "," + msgList[0] + "," + msgList[1]
                 return msg
-
 
     def loginRequest(self, msg):
         HOST = "127.0.0.1"
@@ -52,18 +52,22 @@ class kuflixClient(object):
             if port == "0000":
                 #login fail
                 print("login failed")
+                s.close()
+                return "nop"
             else:
+                s.close()
                 self.uid = msgList[2]   #save uid
                 print("uid : ", self.uid , "port : ", port)
                 self.mainLoop(port)
-
+                return "success"
         else:
             flag = msgList[1]
             if flag == "0":
-                print("fail")
+                s.close()
+                return "nop"
             else:
-                print("success")
-        s.close()
+                s.close()
+                return "success"
 
         #Through return value, system signal to GUIhandler what has to be
 
@@ -73,13 +77,44 @@ class kuflixClient(object):
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((HOST, PORT))
-        msg = self.sock.recv(1024)
-        print("uid request")
-        if msg.decode("utf-8", "ignore") == "uid":
-            self.sock.send(bytes(self.uid, "utf-8"))
-            print("send")
+
+        print("Mainserver connected")
+
+        self.sock.send(bytes(self.uid, "utf-8"))
+        print("send")
+
+        ack = self.sock.recv(1024)
 
         self.setUp(self.sock)
+
+    def mainRequest(self, msg):
+        self.sock.send(pickle.dumps(msg))
+
+        data = self.sock.recv(1024)
+
+        data = pickle.loads(data)
+
+        msgList = data.split(",")
+
+        if msgList[0] == "00":  # request string info of first page
+            return msgList[2]
+        elif msgList[0] == "01":  # request thumnail file
+            return [msgList[1], msgList[2]]
+        elif msgList[0] == "10":  # request search
+            searchList = []
+            searchList.append(msgList)
+            self.sock.send(pickle.dumps("ack"))
+            while msgList[3] != "1":
+                data = self.sock.recv(1024)
+                data = pickle.loads(data)
+                msgList = data.split(",")
+                searchList.append(msgList)
+                self.sock.send(pickle.dumps("ack"))
+            return searchList
+        elif msgList[0] == "11":  # request streaming
+            print("streaming")
+        else:
+            self.sock.close()
 
     def listener(self):
         while True:
@@ -91,32 +126,21 @@ class kuflixClient(object):
 
     def setUp(self, sock):
         # id
-        msg = self.protocolGenerator(1, 0, ["000", "1"])
-        self.sock.send(bytes(msg, "utf-8"))
-        self.id = self.sock.recv(1024)
-        self.id = self.id.decode("utf-8", "ignore").split(",")[2]
+        self.id = self.mainRequest(self.protocolGenerator(1, 0, ["000", "1"]))
         print(self.id)
 
         # name
-        msg = self.protocolGenerator(1, 0, ["001", "1"])
-        sock.send(bytes(msg, "utf-8"))
-        self.name = sock.recv(1024)
-        self.name = self.name.decode("utf-8", "ignore").split(",")[2]
+        self.name = self.mainRequest(self.protocolGenerator(1, 0, ["001", "1"]))
         print(self.name)
 
         # rank
-        msg = self.protocolGenerator(1, 0, ["002", "1"])
-        sock.send(bytes(msg, "utf-8"))
-        self.rank = sock.recv(1024)
-        self.rank = self.rank.decode("utf-8", "ignore").split(",")[2]
+        self.rank = self.mainRequest(self.protocolGenerator(1, 0, ["002", "1"]))
         print(self.rank)
 
         # thumanails
         for i in range(0, 12):
             label = str(100 + i)
-            msg = self.protocolGenerator(1, 0, [label, "1"])
-            sock.send(bytes(msg, "utf-8"))
-            self.tmList[i] = sock.recv(1024).decode("utf-8", "ignore").split(",")[2]
+            self.tmList[i] = self.mainRequest(self.protocolGenerator(1, 0, [label, "1"]))
             print(self.tmList[i])
         print("over")
 
