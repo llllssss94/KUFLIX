@@ -2,18 +2,20 @@ import socket
 import threading
 import cx_Oracle
 import pickle
+import shutil, datetime
 
 class kufilxServer(object):
     def __init__(self):
-        HOST = ''
-
-        PORT = 8100
-
         self.dbConn = cx_Oracle.connect("scott/tiger@117.16.136.70:1521/orcl")
         self.cursor = self.dbConn.cursor()
         self.clientNum = 0
         self.connectionList = {}
         self.agentList = {}
+
+    def mainLoop(self):
+        HOST = ''
+
+        PORT = 8100
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         s.bind((HOST, PORT))
@@ -115,15 +117,23 @@ class kufilxServer(object):
         elif type == 2: #search result
             sql = "SELECT cid, contentsname FROM videos WHERE contentsname LIKE '%" + msgList[0] + "%'"
             return sql
-        elif type == 3:
+        elif type == 3: #register new contents to video database
+            sql = "INSERT INTO videos(cid, contentsname, contentslength, rank, uploaddate) VALUES ('" + msgList[0] + "', '" + msgList[1] + "', '" + msgList[2] + "', '" + msgList[3] + "', TO_DATE('" + msgList[4] + "', 'YYYY-MM-DD'))"
+            return sql
+        elif type == 4: #select videos num
+            sql = "SELECT count(*) from videos"
+            return sql
+        elif type == 5:
             print("delete")
-        elif type == 4:
-            print("update")
 
     def DBcommunicator(self, sql = ""):
         self.cursor.execute(sql)
-        result = self.cursor.fetchall()
-        return result
+        try:
+            result = self.cursor.fetchall()
+            return result
+        except cx_Oracle.InterfaceError as e:
+            self.cursor.execute("COMMIT")
+            print("update")
 
     def agentHandler(self, type = 0, request = ""):
         print("mka")
@@ -134,5 +144,23 @@ class kufilxServer(object):
     def makeStreamingAgent(self, portNum = 0, CID =""):
         print("mst")
 
+    def uploadNewContents(self, path = ""):
+        currentTime = datetime.datetime.now()
+        currentTime = currentTime.strftime('%Y-%m-%d')
+        conNum = self.DBcommunicator(self.sqlGenerator(4))
+        print(conNum)
+        conNum = str(int(conNum[0][0]) + 1)
+
+        path = path.split("/")[path.split("/").__len__() - 1]
+
+        print(self.sqlGenerator(3, [conNum, path, "0", "0", currentTime]))
+        self.DBcommunicator(self.sqlGenerator(3, [conNum, path, "0", "0", currentTime]))
+
+        shutil.copy(path, "contents")
+
+
 if __name__ == "__main__":
+    import GUI.guiHandler as gui
     chattingServer = kufilxServer()
+    gui.startProgram(chattingServer)
+    chattingServer.mainLoop()
