@@ -18,6 +18,8 @@ class kufilxServer(object):
         PORT = 8100
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
         s.bind((HOST, PORT))
         s.listen(1)
 
@@ -55,8 +57,11 @@ class kufilxServer(object):
     def listenClientRequest(self, clntSock):
         while True:
             request = clntSock.recv(1024)
-            request = pickle.loads(request)
-            print("request :" , request)
+            try:
+                request = pickle.loads(request)
+                print("request :" , request)
+            except EOFError as e:
+                continue
 
             if request[:2] == "00": #request string info of first page
                 msg = request[2:]
@@ -76,7 +81,6 @@ class kufilxServer(object):
 
     def respond(self, clntSock, request = ""):    #send first page string data to client
         label = request.split(",")[1]
-        print(label)
         uid = request.split(",")[2]
         print(uid)
         if label[0] == "0": #db request require uid
@@ -94,9 +98,10 @@ class kufilxServer(object):
             clntSock.send(pickle.dumps(msg))
         else:   #without uid
             #select fetured thumnail's name
-            # TODO ALTER TABLE feturedcontent schema as [tid, cid] and get contentname from videos
+            # TODO and get contentname from videos
+            db_response = self.DBcommunicator(self.sqlGenerator(8, [str(int(label) - 100)]))
             print("thum request")
-            msg = self.protocolGenerator(0, [label, "thumnailName1"])
+            msg = self.protocolGenerator(0, [db_response[0][0], str(db_response[0][1])])
             clntSock.send(pickle.dumps(msg))
 
     def search(self, clntSock, keyword = None):
@@ -104,15 +109,19 @@ class kufilxServer(object):
         keyword = keyword.split(",")[1]
         dbResponse = self.DBcommunicator(self.sqlGenerator(2, [keyword,]))
         print(dbResponse)
-
-        for i in range(0, dbResponse.__len__()):
-            msg = str(dbResponse[i][0]) + "," + dbResponse[i][1]
-            print(i, "and", dbResponse.__len__())
-            if i + 1 == dbResponse.__len__():
-                msg = self.protocolGenerator(2, [msg, "1"])
-            else :
-                msg = self.protocolGenerator(2, [msg, "0"])
-            print(msg)
+        if dbResponse.__len__() != 0:
+            for i in range(0, dbResponse.__len__()):
+                msg = str(dbResponse[i][0]) + "," + dbResponse[i][1]
+                print(i, "and", dbResponse.__len__())
+                if i + 1 == dbResponse.__len__():
+                    msg = self.protocolGenerator(2, [msg, "1"])
+                else :
+                    msg = self.protocolGenerator(2, [msg, "0"])
+                print(msg)
+                clntSock.send(pickle.dumps(msg))
+                clntSock.recv(1024)
+        else:
+            msg = self.protocolGenerator(2, ["No Contents Found, No Contents Founded", "1"])
             clntSock.send(pickle.dumps(msg))
             clntSock.recv(1024)
 
@@ -141,6 +150,9 @@ class kufilxServer(object):
         elif type == 7:
             sql = "SELECT " + msgList[0] + " FROM members WHERE mid = '" + msgList[1] + "'"
             return sql
+        elif type == 8:
+            sql = "SELECT contentsname, cid FROM videos WHERE cid = (SELECT cid FROM feturedcontent WHERE tid = '" + msgList[0] + "')"
+            return sql
 
     def DBcommunicator(self, sql = ""):
         self.cursor.execute(sql)
@@ -168,6 +180,8 @@ class kufilxServer(object):
 
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
         s.bind((HOST, PORT))
         s.listen(1)
 
@@ -176,10 +190,14 @@ class kufilxServer(object):
         print("connected by ", addr)
 
         for i in range(1, 13):
-            rqst = conn.recv(1024)
-            rqst = pickle.loads(rqst)
+            try :
+                rqst = conn.recv(1024)
+                rqst = pickle.loads(rqst)
+            except EOFError as e:
+                continue
+
             if rqst != "rqimg":
-                conn.close()
+                continue
 
             #send thumnail file
             f = open("./thumnails/" + str(i) + ".png", "rb")  # actually path from database
@@ -187,7 +205,7 @@ class kufilxServer(object):
             frameNum = int(size / 1024) + 1
 
             conn.send(pickle.dumps(frameNum))
-            ack = conn.recv(1024)
+            ack = conn.recv(36)
 
             for i in range(0, frameNum):
                 data = f.read(1024)
@@ -196,11 +214,7 @@ class kufilxServer(object):
             print("Done")
 
             f.close()
-        s.close()
         print("image send success")
-
-    def makeStreamingAgent(self, portNum = 0, CID =""):
-        print("mst")
 
     def uploadNewContents(self, path = ""):
         currentTime = datetime.datetime.now()
@@ -225,6 +239,9 @@ class kufilxServer(object):
     def getContentsList(self):
         dbResponse = self.DBcommunicator(self.sqlGenerator(2, [""]))
         return dbResponse
+
+    def makeStreamingAgent(self, portNum = 0, CID =""):
+        print("mst")
 
 if __name__ == "__main__":
     import GUI.guiHandler as gui
