@@ -65,10 +65,6 @@ class Ui_service(object):
         self.search.setSizePolicy(sizePolicy)
         self.search.setStyleSheet("background-color: rgb(255, 255, 255);")
         self.search.setObjectName("search")
-        self.searchResult = QtWidgets.QTextBrowser(self.centralwidget)
-        self.searchResult.setGeometry(QtCore.QRect(20, 270, 271, 281))
-        self.searchResult.setStyleSheet("background-color: rgb(255, 255, 255);")
-        self.searchResult.setObjectName("searchResult")
         self.widget_3 = QtWidgets.QWidget(self.centralwidget)
         self.widget_3.setGeometry(QtCore.QRect(320, 20, 731, 531))
         self.widget_3.setStyleSheet("background-color: rgb(92, 92, 92);")
@@ -137,6 +133,11 @@ class Ui_service(object):
         self.searchButton.setGeometry(QtCore.QRect(260, 230, 31, 31))
         self.searchButton.setText("")
         self.searchButton.setObjectName("searchButton")
+        self.searchResult = QtWidgets.QListWidget(self.centralwidget)
+        self.searchResult.setGeometry(QtCore.QRect(20, 270, 271, 281))
+        self.searchResult.setObjectName("searchResult")
+        item = QtWidgets.QListWidgetItem()
+        self.searchResult.addItem(item)
         service.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(service)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1063, 23))
@@ -159,11 +160,11 @@ class Ui_service(object):
         self.menu.setItemText(0, _translate("service", "구독목록"))
         self.menu.setItemText(1, _translate("service", "최근시청목록"))
         self.search.setPlainText(_translate("service", "검색"))
-        self.searchResult.setHtml(_translate("service", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Noto Sans\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">검색결과</p></body></html>"))
+        __sortingEnabled = self.searchResult.isSortingEnabled()
+        self.searchResult.setSortingEnabled(False)
+        item = self.searchResult.item(0)
+        item.setText(_translate("service", "검색 결과"))
+        self.searchResult.setSortingEnabled(__sortingEnabled)
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@ import socket
 import threading
 import cx_Oracle
 import pickle
-import shutil, datetime
+import os, shutil, datetime
 
 class kufilxServer(object):
     def __init__(self):
@@ -21,7 +21,7 @@ class kufilxServer(object):
         s.bind((HOST, PORT))
         s.listen(1)
 
-        self.DBcommunicator(self.sqlGenerator(1))
+        print("we are listneing.")
 
         while True:
             self.conn, self.addr = s.accept()
@@ -63,14 +63,14 @@ class kufilxServer(object):
                 print(msg)
                 self.respond(clntSock, msg)
             elif request[:2] == "01":   #request thumnail file
-                msg = request[2:]
-                self.agentHandler(1, msg)
+                msg = request[3:].split(",")   #label(3), uid
+                self.agentHandler(1, msg, clntSock)
             elif request[:2] == "10":   #request search
                 msg = request[2:]
                 self.search(clntSock, msg)
             elif request[:2] == "11":   #request streaming
-                msg = request[2:]
-                self.agentHandler(2, msg)
+                msg = request[3:].split(",")   #cid, uid
+                self.agentHandler(2, msg, clntSock)
             else:
                 clntSock.close()
 
@@ -80,14 +80,23 @@ class kufilxServer(object):
         uid = request.split(",")[2]
         print(uid)
         if label[0] == "0": #db request require uid
+            if label[2] == "0":
+                values = "memberid"
+            elif label[2] == "1":
+                values = "membername"
+            else:
+                values = "rank"
             #select id, name ,rank info from database with uid
+            db_response = self.DBcommunicator(self.sqlGenerator(7, [values, uid]))
             print("info request")
-            msg = self.protocolGenerator(0, ["000", "yourID"])
+            print(db_response[0][0])
+            msg = self.protocolGenerator(0, [label, str(db_response[0][0])])
             clntSock.send(pickle.dumps(msg))
         else:   #without uid
             #select fetured thumnail's name
+            # TODO ALTER TABLE feturedcontent schema as [tid, cid] and get contentname from videos
             print("thum request")
-            msg = self.protocolGenerator(0, ["101", "thumnailName1"])
+            msg = self.protocolGenerator(0, [label, "thumnailName1"])
             clntSock.send(pickle.dumps(msg))
 
     def search(self, clntSock, keyword = None):
@@ -121,10 +130,17 @@ class kufilxServer(object):
             sql = "INSERT INTO videos(cid, contentsname, contentslength, rank, uploaddate) VALUES ('" + msgList[0] + "', '" + msgList[1] + "', '" + msgList[2] + "', '" + msgList[3] + "', TO_DATE('" + msgList[4] + "', 'YYYY-MM-DD'))"
             return sql
         elif type == 4: #select videos num
-            sql = "SELECT count(*) from videos"
+            sql = "SELECT MAX(cid) FROM videos"
             return sql
         elif type == 5:
-            print("delete")
+            sql = "DELETE FROM videos WHERE cid = '" + msgList[0] + "'"
+            return sql
+        elif type == 6:
+            sql = "SELECT contentsname FROM videos WHERE cid = '" + msgList[0] + "'"
+            return sql
+        elif type == 7:
+            sql = "SELECT " + msgList[0] + " FROM members WHERE mid = '" + msgList[1] + "'"
+            return sql
 
     def DBcommunicator(self, sql = ""):
         self.cursor.execute(sql)
@@ -135,11 +151,53 @@ class kufilxServer(object):
             self.cursor.execute("COMMIT")
             print("update")
 
-    def agentHandler(self, type = 0, request = ""):
-        print("mka")
+    def agentHandler(self, type = 0, request = [], clntSock = None):
+        if type == 1:
+            newPort = 10000 + int(request[1])
+            msg = self.protocolGenerator(1, [str(newPort)])
+            clntSock.send(pickle.dumps(msg))
+            self.makeFileTransferAgent(newPort)
+        #type 1 => thumnail agent, caculate new portnum with uid (10000 + int(uid)) and tid with label and response portnum
+        #type 2 => streaming agent, caculate new portnum with uid (12000 + int(uid)) and cid with cid and response portnum
 
-    def makeFileTransferAgent(self, portNum = 0, TID = ""):
-        print("mftp")
+    def makeFileTransferAgent(self, portNum = 0):
+        #get path from database using tid [feturedcontent(tid, cid, path)]
+        #open new socket accept
+        HOST = ''
+        PORT = portNum
+
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        s.bind((HOST, PORT))
+        s.listen(1)
+
+        conn, addr = s.accept()
+
+        print("connected by ", addr)
+
+        for i in range(1, 13):
+            rqst = conn.recv(1024)
+            rqst = pickle.loads(rqst)
+            if rqst != "rqimg":
+                conn.close()
+
+            #send thumnail file
+            f = open("./thumnails/" + str(i) + ".png", "rb")  # actually path from database
+            size = os.path.getsize("./thumnails/" + str(i) + ".png")
+            frameNum = int(size / 1024) + 1
+
+            conn.send(pickle.dumps(frameNum))
+            ack = conn.recv(1024)
+
+            for i in range(0, frameNum):
+                data = f.read(1024)
+                conn.send(data)
+
+            print("Done")
+
+            f.close()
+        s.close()
+        print("image send success")
 
     def makeStreamingAgent(self, portNum = 0, CID =""):
         print("mst")
@@ -148,8 +206,10 @@ class kufilxServer(object):
         currentTime = datetime.datetime.now()
         currentTime = currentTime.strftime('%Y-%m-%d')
         conNum = self.DBcommunicator(self.sqlGenerator(4))
-        print(conNum)
-        conNum = str(int(conNum[0][0]) + 1)
+        try :
+            conNum = str(int(conNum[0][0]) + 1)
+        except TypeError as e:
+            conNum = "1"
 
         path = path.split("/")[path.split("/").__len__() - 1]
 
@@ -158,9 +218,15 @@ class kufilxServer(object):
 
         shutil.copy(path, "contents")
 
+    def deleteContents(self, cid):
+        os.remove("./contents/" + self.DBcommunicator(self.sqlGenerator(6, [cid]))[0][0])
+        self.DBcommunicator(self.sqlGenerator(5, [cid]))
+
+    def getContentsList(self):
+        dbResponse = self.DBcommunicator(self.sqlGenerator(2, [""]))
+        return dbResponse
 
 if __name__ == "__main__":
     import GUI.guiHandler as gui
     chattingServer = kufilxServer()
     gui.startProgram(chattingServer)
-    chattingServer.mainLoop()

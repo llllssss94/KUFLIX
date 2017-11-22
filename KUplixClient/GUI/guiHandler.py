@@ -33,7 +33,7 @@ class guiHandler(object):
 
         ui.ID_lable.setText(self.system.id)
         ui.NAME_lable.setText(self.system.name)
-        ui.RANK_label.setText(self.system.name)
+        ui.RANK_label.setText(self.system.rank)
         ui.thumnail1.setText(self.system.tmList[0])
         ui.thumnail2.setText(self.system.tmList[1])
         ui.thumnail3.setText(self.system.tmList[2])
@@ -59,7 +59,7 @@ class guiHandler(object):
         result = self.system.mainRequest(self.system.protocolGenerator(1, 2, [keyword, self.system.uid]))
         ui.searchResult.clear()
         for i in range(0, result.__len__()):
-            ui.searchResult.append(result[i][2])
+            ui.searchResult.addItem(result[i][2])
 
     def hadleCombo(self, ui):
         if ui.menu.currentIndex() != 1:

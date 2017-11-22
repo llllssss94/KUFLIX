@@ -99,7 +99,7 @@ class kuflixClient(object):
         if msgList[0] == "00":  # request string info of first page
             return msgList[2]
         elif msgList[0] == "01":  # request thumnail file
-            return [msgList[1], msgList[2]]
+            return msgList[1]
         elif msgList[0] == "10":  # request search
             searchList = []
             searchList.append(msgList)
@@ -120,9 +120,42 @@ class kuflixClient(object):
         while True:
             respond = self.sock.recv(1024)
 
-    def requestAgent(self):
+    def requestAgent(self, types = 0, label = ""):
         #request
-        print("yeah~")
+        if types == 0:
+            #protocol 1 - 1 with label, uid
+            reponse = self.mainRequest(self.protocolGenerator(1, 1, [label, self.uid]))
+            print(reponse)
+
+            HOST = "127.0.0.1"
+            PORT = int(reponse)
+
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((HOST, PORT))
+
+            print("connected")
+            for i in range(1, 13):
+                #when server response port_num, then connect to new socket to receieve thumnail file
+                f = open("./thumnails/" + str(int(label) + i) + ".png", "wb")
+
+                s.send(pickle.dumps("rqimg"))
+
+                data = s.recv(1024)
+                print(data)
+                frameNum = pickle.loads(data)
+
+                s.send("ack".encode("utf-8"))
+
+                print(frameNum)
+
+                for i in range(0, frameNum):
+                    data = s.recv(1024)
+                    f.write(data)
+                print("Done")
+                f.close()
+            s.close()
+        else:
+            print("streamingr request")
 
     def setUp(self, sock):
         # id
@@ -135,12 +168,19 @@ class kuflixClient(object):
 
         # rank
         self.rank = self.mainRequest(self.protocolGenerator(1, 0, ["002", "1"]))
+        if self.rank == "0":
+            self.rank = "19+"
+        else:
+            self.rank = "R"
         print(self.rank)
 
+        #thumnail files
+        self.requestAgent(0, "100")
+
         # thumanails
-        for i in range(0, 12):
+        for i in range(1, 13):
             label = str(100 + i)
-            self.tmList[i] = self.mainRequest(self.protocolGenerator(1, 0, [label, "1"]))
+            self.tmList[i] = self.mainRequest(self.protocolGenerator(1, 0, [label, self.uid]))
             print(self.tmList[i])
         print("over")
 

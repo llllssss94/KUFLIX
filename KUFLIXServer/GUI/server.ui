@@ -71,13 +71,13 @@
      <string>삭제</string>
     </property>
    </widget>
-   <widget class="QListView" name="ListView">
+   <widget class="QListWidget" name="itemList">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>80</y>
-      <width>311</width>
-      <height>341</height>
+      <x>10</x>
+      <y>70</y>
+      <width>331</width>
+      <height>351</height>
      </rect>
     </property>
    </widget>

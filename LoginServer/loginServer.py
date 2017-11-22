@@ -48,7 +48,7 @@ class loginServer(object):
             dbResponse = self.DBcommunicator(self.sqlGenerator(0, [inputID, ]))
             if dbResponse[0][0] == inputPW:
                 print("login success")
-                msg = self.protocolGenerator(0, "8100", "1")
+                msg = self.protocolGenerator(0, "8100", str(dbResponse[0][1]))
                 clntSock.send(bytes(msg, "utf-8"))
             else:
                 msg = self.protocolGenerator(0, "0000", "0000")
@@ -84,7 +84,7 @@ class loginServer(object):
 
     def sqlGenerator(self, type = 0, msgList = []):
         if type == 0:   #chaeck login
-            sql = "SELECT hashPW FROM members WHERE memberid = '" + msgList[0] + "'"
+            sql = "SELECT hashPW, mid FROM members WHERE memberid = '" + msgList[0] + "'"
             return sql
         elif type == 1:
             sql = "SELECT count(*) FROM members WHERE memberid = '" + msgList[0] + "'"
