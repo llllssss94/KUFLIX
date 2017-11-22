@@ -67,7 +67,6 @@ class Ui_KUFLIX(object):
         self.login.setText(_translate("KUFLIX", "로그인"))
         self.join.setText(_translate("KUFLIX", "회원가입"))
 
-
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
