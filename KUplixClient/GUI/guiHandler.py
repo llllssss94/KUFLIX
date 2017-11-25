@@ -1,5 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from GUI import join, login, service, subscribeList, recentList
+import hashlib
 
 class guiHandler(object):
     def __init__(self, Form, system):
@@ -14,6 +15,7 @@ class guiHandler(object):
     def login(self, ui):
         id = ui.id.toPlainText()
         passwd = ui.passwd.toPlainText()
+        passwd = hashlib.sha256(bytes(passwd, "utf-8")).hexdigest()
         if self.system.loginRequest(self.system.protocolGenerator(0, 0, [id, passwd])) != "nop":
             self.loginSuccess()
         # login fail popup
@@ -58,7 +60,7 @@ class guiHandler(object):
     def requestSearch(self, ui):
         keyword = ui.search.toPlainText()
         self.system.searchList = []
-        result = self.system.mainRequest(self.system.protocolGenerator(1, 2, [keyword, self.system.uid]))
+        result = self.system.mainRequest(self.system.protocolGenerator(1, 2, [keyword]))
         ui.searchResult.clear()
         for i in range(0, result.__len__()):
             ui.searchResult.addItem(result[i][2])
@@ -73,6 +75,9 @@ class guiHandler(object):
         dialog = QtWidgets.QDialog()
         dialog.ui = subscribeList.Ui_subscribeListForm()
         dialog.ui.setupUi(dialog)
+        #get list from system DB and add Item to List
+        self.getList("1", dialog.ui)
+
         dialog.exec_()
         dialog.show()
 
@@ -80,8 +85,25 @@ class guiHandler(object):
         dialog = QtWidgets.QDialog()
         dialog.ui = recentList.Ui_recentList_Form()
         dialog.ui.setupUi(dialog)
+        # get list from system DB and add Item to List
+        self.getList("0", dialog.ui)
+
         dialog.exec_()
         dialog.show()
+
+    def getList(self, types = "0", ui = None):
+        if types == "0":
+            result = self.system.mainRequest(self.system.protocolGenerator(1, 4, ["200"]))
+            ui.listWidget.clear()
+            for i in range(0, result.__len__()):
+                item = result[i][1] + " || " + result[i][2]
+                ui.listWidget.addItem(item)
+        else:
+            result = self.system.mainRequest(self.system.protocolGenerator(1, 4, ["300"]))
+            ui.subList.clear()
+            for i in range(0, result.__len__()):
+                item = result[i][1]
+                ui.subList.addItem(item)
 
     def goToJoin(self):
         ui = join.Ui_Join()

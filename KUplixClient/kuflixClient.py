@@ -20,16 +20,19 @@ class kuflixClient(object):
                 return msg
         else:   #main mode
             if type == 0:  # 00 ##[00 | LABEL | UID]    #first page info
-                msg = "00" + "," + msgList[0] + "," + msgList[1]
+                msg = "00" + "," + msgList[0] + "," + self.uid
                 return msg
             elif type == 1:  # 01 ##[01 | LABEL | UID]  #thumnail file transfer request
-                msg = "01" + "," + msgList[0] + "," + msgList[1]
+                msg = "01" + "," + msgList[0] + "," + self.uid
                 return msg
             elif type == 2:  # 10 ##[10 | MESSAGE | UID]    #request search
-                msg = "10" + "," + msgList[0] + "," + msgList[1]
+                msg = "10" + "," + msgList[0] + "," + self.uid
                 return msg
-            else:  # 11 ##[11 | VIDEO_ID | UID]     #request video streaming
-                msg = "11" + "," + msgList[0] + "," + msgList[1]
+            elif type == 3:  # 11 ##[11 | VIDEO_ID | UID]     #request video streaming
+                msg = "11" + "," + msgList[0] + "," + self.uid
+                return msg
+            else:   # 20 ##[20 | LABEL | UID]   #type = 4, label(200 => recent)
+                msg = "20" + "," + msgList[0] + "," + self.uid
                 return msg
 
     def loginRequest(self, msg):
@@ -70,6 +73,9 @@ class kuflixClient(object):
                 return "success"
 
         #Through return value, system signal to GUIhandler what has to be
+
+    def requestList(self):
+        print("")
 
     def mainLoop(self, port):
         HOST = "127.0.0.1"
@@ -113,6 +119,17 @@ class kuflixClient(object):
             return searchList
         elif msgList[0] == "11":  # request streaming
             print("streaming")
+        elif msgList[0] == "20":
+            dataList = []
+            dataList.append(msgList)
+            self.sock.send(pickle.dumps("ack"))
+            while msgList[3] != "1":
+                data = self.sock.recv(1024)
+                data = pickle.loads(data)
+                msgList = data.split(",")
+                dataList.append(msgList)
+                self.sock.send(pickle.dumps("ack"))
+            return dataList
         else:
             self.sock.close()
 
@@ -124,7 +141,7 @@ class kuflixClient(object):
         #request
         if types == 0:
             #protocol 1 - 1 with label, uid
-            reponse = self.mainRequest(self.protocolGenerator(1, 1, [label, self.uid]))
+            reponse = self.mainRequest(self.protocolGenerator(1, 1, [label]))
             print(reponse)
 
             HOST = "127.0.0.1"
@@ -167,15 +184,15 @@ class kuflixClient(object):
 
     def setUp(self, sock):
         # id
-        self.id = self.mainRequest(self.protocolGenerator(1, 0, ["000", "1"]))[1]
+        self.id = self.mainRequest(self.protocolGenerator(1, 0, ["000"]))[1]
         print(self.id)
 
         # name
-        self.name = self.mainRequest(self.protocolGenerator(1, 0, ["001", "1"]))[1]
+        self.name = self.mainRequest(self.protocolGenerator(1, 0, ["001"]))[1]
         print(self.name)
 
         # rank
-        self.rank = self.mainRequest(self.protocolGenerator(1, 0, ["002", "1"]))[1]
+        self.rank = self.mainRequest(self.protocolGenerator(1, 0, ["002"]))[1]
         if self.rank == "0":
             self.rank = "19+"
         else:
@@ -189,7 +206,7 @@ class kuflixClient(object):
         for i in range(1, 13):
             label = str(100 + i)
             print(label)
-            self.tmList[i] = self.mainRequest(self.protocolGenerator(1, 0, [label, self.uid]))
+            self.tmList[i] = self.mainRequest(self.protocolGenerator(1, 0, [label]))
             print(self.tmList[i])
         print("over")
 

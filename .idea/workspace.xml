@@ -6,6 +6,7 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/KUFLIXServer/kuflixServer.py" afterPath="$PROJECT_DIR$/KUFLIXServer/kuflixServer.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/KUplixClient/GUI/guiHandler.py" afterPath="$PROJECT_DIR$/KUplixClient/GUI/guiHandler.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/KUplixClient/kuflixClient.py" afterPath="$PROJECT_DIR$/KUplixClient/kuflixClient.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/LoginServer/loginServer.py" afterPath="$PROJECT_DIR$/LoginServer/loginServer.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -19,21 +20,23 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="guiHandler.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/KUplixClient/GUI/guiHandler.py">
+      <file leaf-file-name="loginServer.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/LoginServer/loginServer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="525">
-              <caret line="49" column="51" lean-forward="false" selection-start-line="49" selection-start-column="51" selection-end-line="49" selection-end-column="51" />
-              <folding />
+            <state relative-caret-position="75">
+              <caret line="50" column="8" lean-forward="false" selection-start-line="50" selection-start-column="8" selection-end-line="50" selection-end-column="8" />
+              <folding>
+                <element signature="e#0#13#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="kuflixServer.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="kuflixServer.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/KUFLIXServer/kuflixServer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="368">
-              <caret line="238" column="30" lean-forward="true" selection-start-line="238" selection-start-column="30" selection-end-line="238" selection-end-column="30" />
+            <state relative-caret-position="337">
+              <caret line="216" column="24" lean-forward="true" selection-start-line="216" selection-start-column="24" selection-end-line="216" selection-end-column="24" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -44,10 +47,22 @@
       <file leaf-file-name="kuflixClient.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/KUplixClient/kuflixClient.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="277">
-              <caret line="105" column="30" lean-forward="false" selection-start-line="105" selection-start-column="30" selection-end-line="105" selection-end-column="30" />
+            <state relative-caret-position="345">
+              <caret line="38" column="26" lean-forward="true" selection-start-line="38" selection-start-column="26" selection-end-line="38" selection-end-column="26" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="guiHandler.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/KUplixClient/GUI/guiHandler.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="165">
+              <caret line="17" column="53" lean-forward="false" selection-start-line="17" selection-start-column="53" selection-end-line="17" selection-end-column="53" />
+              <folding>
+                <element signature="e#0#42#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -80,10 +95,10 @@
         <option value="$PROJECT_DIR$/KUplixClient/GUI/service.py" />
         <option value="$PROJECT_DIR$/KUFLIXServer/GUI/server.py" />
         <option value="$PROJECT_DIR$/KUFLIXServer/GUI/guiHandler.py" />
-        <option value="$PROJECT_DIR$/LoginServer/loginServer.py" />
         <option value="$PROJECT_DIR$/KUplixClient/kuflixClient.py" />
-        <option value="$PROJECT_DIR$/KUplixClient/GUI/guiHandler.py" />
         <option value="$PROJECT_DIR$/KUFLIXServer/kuflixServer.py" />
+        <option value="$PROJECT_DIR$/KUplixClient/GUI/guiHandler.py" />
+        <option value="$PROJECT_DIR$/LoginServer/loginServer.py" />
       </list>
     </option>
   </component>
@@ -150,7 +165,7 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../Angle_to_meet/Angle-to-meet/Angle_to_meet_Chatting_Server" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
@@ -424,18 +439,17 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="-1" width="1366" height="768" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.21961933" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.34080717" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.34080717" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -653,13 +667,6 @@
     <entry file="file://$PROJECT_DIR$/KUFLIXServer/testingGUI.py" />
     <entry file="file://$PROJECT_DIR$/KUplixClient/GUI/player.py" />
     <entry file="file://$PROJECT_DIR$/KUplixClient/GUI/hello.py" />
-    <entry file="file://$PROJECT_DIR$/KUplixClient/GUI/recentList.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/KUFLIXServer/streamVIdeo.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="225">
@@ -668,13 +675,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/KUplixClient/Driver.py" />
-    <entry file="file://$PROJECT_DIR$/KUplixClient/GUI/subscribeList.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-218">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/KUplixClient/GUI/join.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-743">
@@ -717,13 +717,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/LoginServer/loginServer.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="420">
-          <caret line="51" column="50" lean-forward="true" selection-start-line="51" selection-start-column="50" selection-end-line="51" selection-end-column="50" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/KUFLIXServer/videoStreamer.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="360">
@@ -738,28 +731,56 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/KUplixClient/GUI/guiHandler.py">
+    <entry file="file://$PROJECT_DIR$/KUplixClient/GUI/recentList.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="525">
-          <caret line="49" column="51" lean-forward="false" selection-start-line="49" selection-start-column="51" selection-end-line="49" selection-end-column="51" />
+        <state relative-caret-position="300">
+          <caret line="23" column="23" lean-forward="true" selection-start-line="23" selection-start-column="13" selection-end-line="23" selection-end-column="23" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/KUplixClient/kuflixClient.py">
+    <entry file="file://$PROJECT_DIR$/KUplixClient/GUI/subscribeList.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="277">
-          <caret line="105" column="30" lean-forward="false" selection-start-line="105" selection-start-column="30" selection-end-line="105" selection-end-column="30" />
+        <state relative-caret-position="345">
+          <caret line="23" column="20" lean-forward="true" selection-start-line="23" selection-start-column="13" selection-end-line="23" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/KUFLIXServer/kuflixServer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="337">
+          <caret line="216" column="24" lean-forward="true" selection-start-line="216" selection-start-column="24" selection-end-line="216" selection-end-column="24" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/KUFLIXServer/kuflixServer.py">
+    <entry file="file://$PROJECT_DIR$/KUplixClient/kuflixClient.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="368">
-          <caret line="238" column="30" lean-forward="true" selection-start-line="238" selection-start-column="30" selection-end-line="238" selection-end-column="30" />
+        <state relative-caret-position="345">
+          <caret line="38" column="26" lean-forward="true" selection-start-line="38" selection-start-column="26" selection-end-line="38" selection-end-column="26" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/KUplixClient/GUI/guiHandler.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="17" column="53" lean-forward="false" selection-start-line="17" selection-start-column="53" selection-end-line="17" selection-end-column="53" />
+          <folding>
+            <element signature="e#0#42#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LoginServer/loginServer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="50" column="8" lean-forward="false" selection-start-line="50" selection-start-column="8" selection-end-line="50" selection-end-column="8" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
           </folding>

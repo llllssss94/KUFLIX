@@ -37,7 +37,7 @@ class kufilxServer(object):
             self.conn.send(bytes("ack", "utf-8"))
 
             self.connectionList[self.clientNum] = [self.conn, uid]
-            threading._start_new_thread(self.listenClientRequest, (self.connectionList[self.clientNum][0],))
+            threading._start_new_thread(self.listenClientRequest, (self.connectionList[self.clientNum][0], uid))
             self.clientNum += 1
 
     def protocolGenerator(self, type = 0, msgList = []):
@@ -50,17 +50,29 @@ class kufilxServer(object):
         elif type == 2: #10 ##[10 | MESSAGE | FLAG]   send search result one column by column with continue, end flag signal
             msg = "10" + "," + msgList[0] + "," + msgList[1]
             return msg
-        else:           #11 ##[11 | PORT_NUM]   send signal of streaming with a new port number
+        elif type ==3:           #11 ##[11 | PORT_NUM]   send signal of streaming with a new port number
             msg = "11" + "," + msgList[0]
             return msg
+        else:       #20 ##[20 | MESSAGE | FLAG] send subList one column by column with contunue end flag signal
+            msg = "20" + "," + msgList[0] + "," + msgList[1]
+            return msg
 
-    def listenClientRequest(self, clntSock):
+    def listenClientRequest(self, clntSock, mid):
         while True:
-            request = clntSock.recv(1024)
+            try:
+                request = clntSock.recv(1024)
+            except OSError as e:
+                print("yeah!")
+                clntSock.close()
+                print()
+                self.DBcommunicator(self.sqlGenerator(9, [mid]))
+                break
+
             try:
                 request = pickle.loads(request)
                 print("request :" , request)
             except EOFError as e:
+                clntSock.close()
                 continue
 
             if request[:2] == "00": #request string info of first page
@@ -76,8 +88,51 @@ class kufilxServer(object):
             elif request[:2] == "11":   #request streaming
                 msg = request[3:].split(",")   #cid, uid
                 self.agentHandler(2, msg, clntSock)
+            elif request[:2] == "20":
+                msg = request[3:]
+                self.getListData(clntSock, msg)
             else:
                 clntSock.close()
+
+    def getListData(self, clntSock, msg):
+        msg = msg.split(",")
+        uid = msg[1]
+        if msg[0] == "200":
+            dbResponse = self.DBcommunicator(self.sqlGenerator(10, uid))
+            print(dbResponse)
+            if dbResponse.__len__() != 0:
+                for i in range(0, dbResponse.__len__()):
+                    msg = str(dbResponse[i][1]) + "," + str(dbResponse[i][2])
+                    print(i, "and", dbResponse.__len__())
+                    if i + 1 == dbResponse.__len__():
+                        msg = self.protocolGenerator(2, [msg, "1"])
+                    else:
+                        msg = self.protocolGenerator(2, [msg, "0"])
+                    print(msg)
+                    clntSock.send(pickle.dumps(msg))
+                    clntSock.recv(1024)
+            else:
+                msg = self.protocolGenerator(2, ["No History Found, No History Founded", "1"])
+                clntSock.send(pickle.dumps(msg))
+                clntSock.recv(1024)
+        else:
+            dbResponse = self.DBcommunicator(self.sqlGenerator(11, uid))
+            print(dbResponse)
+            if dbResponse.__len__() != 0:
+                for i in range(0, dbResponse.__len__()):
+                    msg = str(dbResponse[i][1]) + "," + str(dbResponse[i][2])
+                    print(i, "and", dbResponse.__len__())
+                    if i + 1 == dbResponse.__len__():
+                        msg = self.protocolGenerator(2, [msg, "1"])
+                    else:
+                        msg = self.protocolGenerator(2, [msg, "0"])
+                    print(msg)
+                    clntSock.send(pickle.dumps(msg))
+                    clntSock.recv(1024)
+            else:
+                msg = self.protocolGenerator(2, ["No Subscribe Found, No Subscribe Founded", "1"])
+                clntSock.send(pickle.dumps(msg))
+                clntSock.recv(1024)
 
     def respond(self, clntSock, request = ""):    #send first page string data to client
         label = request.split(",")[1]
@@ -152,6 +207,15 @@ class kufilxServer(object):
             return sql
         elif type == 8:
             sql = "SELECT contentsname, cid FROM videos WHERE cid = (SELECT cid FROM feturedcontent WHERE tid = '" + msgList[0] + "')"
+            return sql
+        elif type == 9:
+            sql = "DELETE FROM sessionList WHERE mid = '" + msgList[0] + "'"
+            return sql
+        elif type == 10:
+            sql = "SELECT * FROM (SELECT videos.cid, videos.contentsname, history.watchdate, history.mid FROM videos, history where videos.cid = history.cid) WHERE mid = '" + msgList[0] + "'"
+            return sql
+        elif type == 11:
+            sql = "SELECT * FROM (SELECT videos.cid, videos.contentsname, sublist.mid FROM videos, sublist where videos.cid = sublist.cid) WHERE mid = '" + msgList[0] + "'"
             return sql
 
     def DBcommunicator(self, sql = ""):
