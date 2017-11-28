@@ -117,7 +117,7 @@ class kuflixClient(object):
                 searchList.append(msgList)
                 self.sock.send(pickle.dumps("ack"))
             return searchList
-        elif msgList[0] == "11":  # request streaming
+        elif msgList[0] == "11":  # request streaming # pickle(addr, port)
             print("streaming")
         elif msgList[0] == "20":
             dataList = []

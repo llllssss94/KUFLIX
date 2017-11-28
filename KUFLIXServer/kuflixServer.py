@@ -3,6 +3,8 @@ import threading
 import cx_Oracle
 import pickle
 import os, shutil, datetime
+from multiprocessing import Process
+import videoStreamer as vs
 
 class kufilxServer(object):
     def __init__(self):
@@ -10,7 +12,15 @@ class kufilxServer(object):
         self.cursor = self.dbConn.cursor()
         self.clientNum = 0
         self.connectionList = {}
-        self.agentList = {}
+        self.agentList = []
+        self.agentSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        HOST = ''
+        PORT = 7900
+
+        self.agentSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.agentSock.bind((HOST, PORT))
+        self.agentSock.listen(1)
 
     def mainLoop(self):
         HOST = ''
@@ -233,6 +243,8 @@ class kufilxServer(object):
             msg = self.protocolGenerator(1, [str(newPort)])
             clntSock.send(pickle.dumps(msg))
             self.makeFileTransferAgent(newPort)
+        elif type == 2:
+            self.makeStreamingAgent(request[1], clntSock)
         #type 1 => thumnail agent, caculate new portnum with uid (10000 + int(uid)) and tid with label and response portnum
         #type 2 => streaming agent, caculate new portnum with uid (12000 + int(uid)) and cid with cid and response portnum
 
@@ -304,8 +316,45 @@ class kufilxServer(object):
         dbResponse = self.DBcommunicator(self.sqlGenerator(2, [""]))
         return dbResponse
 
-    def makeStreamingAgent(self, portNum = 0, CID =""):
-        print("mst")
+    def makeStreamingAgent(self, cid = "", clntSock = None):
+        if self.agentList.__len__() == 0:
+            print("make new agent")
+            #make new process and wait for connection and get agent from self.agentSock.accept and send that addr, port to client
+        else:
+            isFound = False
+            for i in range(0, self.agentList.__len__()):    #list [(addr, port), isAvailable(0 is available)]
+                if self.agentList[i][1] == 0:
+                    addr = self.agentList[i][0]
+                    port = self.agentList[i][1]
+                    isFound = True
+                    clntSock.send(pickle.dumps([addr, port]))
+                    print("available")
+                    break
+            if isFound == False:
+                p = Process(target=vs.startAgent, args=())
+                p.start()
+                conn, addr = self.agentSock.accept()
+                print("New Agent Ready address : ", addr)
+                portNum = 12000 + self.agentList.__len__()
+                self.agentList.append([addr[0], portNum])
+                conn.send(pickle.dumps(portNum)) #send portNUM
+
+                threading._start_new_thread(self.listenAgentRequest, (conn, self.agentList.__len__()))
+
+                print("make new process")
+
+    def listenAgentRequest(self, agentSock, index):
+        while True:
+            data = agentSock.recv(1024)
+            data = pickle.loads(data)
+
+            #agent send siganl type 1, 2, 3 ## 1 is available, 2 is unavailable, 3 is request of path
+            if data == "1":
+                print("it is available")
+            elif data == "2":
+                print("is is unavailable")
+            elif data == "3":
+                print("path request")
 
 if __name__ == "__main__":
     import GUI.guiHandler as gui
