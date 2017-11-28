@@ -7,6 +7,9 @@ class guiHandler(object):
         self.searchEnable = 0 #0 is unavailable
         self.system = system
         self.Form = Form
+        self.searchList = []
+        self.subList = []
+        self.recentList = []
         ui = login.Ui_KUFLIX()
         ui.setupUi(Form)
         ui.join.clicked.connect(lambda: self.goToJoin())
@@ -55,15 +58,51 @@ class guiHandler(object):
         ui.logout.clicked.connect(lambda: self.goBack())
         ui.menu.activated.connect(lambda: self.hadleCombo(ui))
         ui.searchButton.clicked.connect(lambda: self.requestSearch(ui))
+        ui.thumnail1.clicked.connect(lambda: self.thumnailStart(self.system.tmList[1][1]))
+        ui.thumnail2.clicked.connect(lambda: self.thumnailStart(self.system.tmList[2][1]))
+        ui.thumnail3.clicked.connect(lambda: self.thumnailStart(self.system.tmList[3][1]))
+        ui.thumnail4.clicked.connect(lambda: self.thumnailStart(self.system.tmList[4][1]))
+        ui.thumnail5.clicked.connect(lambda: self.thumnailStart(self.system.tmList[5][1]))
+        ui.thumnail6.clicked.connect(lambda: self.thumnailStart(self.system.tmList[6][1]))
+        ui.thumnail7.clicked.connect(lambda: self.thumnailStart(self.system.tmList[7][1]))
+        ui.thumnail8.clicked.connect(lambda: self.thumnailStart(self.system.tmList[8][1]))
+        ui.thumnail9.clicked.connect(lambda: self.thumnailStart(self.system.tmList[9][1]))
+        ui.thumnail10.clicked.connect(lambda: self.thumnailStart(self.system.tmList[10][1]))
+        ui.thumnail11.clicked.connect(lambda: self.thumnailStart(self.system.tmList[11][1]))
+        ui.thumnail12.clicked.connect(lambda: self.thumnailStart(self.system.tmList[12][1]))
+
         self.searchEnable = 1
+
+    def getIndexinSearch(self, ui):
+        if self.searchList.__len__() > 0:
+            index = self.searchList[ui.searchResult.currentRow()][1]
+            if index.find('Found') >= 0:
+                self.thumnailStart(index)
+
+    def getIndexinRecent(self, ui):
+        if self.recentList.__len__() > 0:
+            index = self.recentList[ui.listWidget.currentRow()][1]
+            if index.find('Found') >= 0:
+                self.thumnailStart(index)
+
+    def getIndexinSub(self, ui):
+        if self.subList.__len__() > 0:
+            index = self.subList[ui.subList.currentRow()][1]
+            if index.find('Found') >= 0:
+                self.thumnailStart(index)
+
+    def thumnailStart(self, index):
+        self.system.startPlayer(index)
 
     def requestSearch(self, ui):
         keyword = ui.search.toPlainText()
-        self.system.searchList = []
+        self.searchList = []
         result = self.system.mainRequest(self.system.protocolGenerator(1, 2, [keyword]))
         ui.searchResult.clear()
         for i in range(0, result.__len__()):
             ui.searchResult.addItem(result[i][2])
+            self.searchList.append(result[i])
+        ui.searchResult.doubleClicked.connect(lambda: self.getIndexinSearch(ui))
 
     def hadleCombo(self, ui):
         if ui.menu.currentIndex() != 1:
@@ -78,6 +117,8 @@ class guiHandler(object):
         #get list from system DB and add Item to List
         self.getList("1", dialog.ui)
 
+        dialog.ui.subList.doubleClicked.connect(lambda: self.getIndexinSub(dialog.ui))
+
         dialog.exec_()
         dialog.show()
 
@@ -88,20 +129,26 @@ class guiHandler(object):
         # get list from system DB and add Item to List
         self.getList("0", dialog.ui)
 
+        dialog.ui.listWidget.doubleClicked.connect(lambda: self.getIndexinRecent(dialog.ui))
+
         dialog.exec_()
         dialog.show()
 
     def getList(self, types = "0", ui = None):
         if types == "0":
+            self.recentList = []
             result = self.system.mainRequest(self.system.protocolGenerator(1, 4, ["200"]))
             ui.listWidget.clear()
             for i in range(0, result.__len__()):
                 item = result[i][1] + " || " + result[i][2]
+                self.recentList.append(result[i])
                 ui.listWidget.addItem(item)
         else:
+            self.subList = []
             result = self.system.mainRequest(self.system.protocolGenerator(1, 4, ["300"]))
             ui.subList.clear()
             for i in range(0, result.__len__()):
+                self.subList.append(result[i])
                 item = result[i][1]
                 ui.subList.addItem(item)
 

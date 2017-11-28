@@ -4,7 +4,7 @@ import cx_Oracle
 import pickle
 import os, shutil, datetime
 from multiprocessing import Process
-import videoStreamer as vs
+from videoStreamer import videoStreamer
 
 class kufilxServer(object):
     def __init__(self):
@@ -90,13 +90,14 @@ class kufilxServer(object):
                 print(msg)
                 self.respond(clntSock, msg)
             elif request[:2] == "01":   #request thumnail file
-                msg = request[3:].split(",")   #label(3), uid
+                msg = request[3:].split(",")   #label(3), uidServerWorker(clientInfo, self.mainSock).run()
                 self.agentHandler(1, msg, clntSock)
             elif request[:2] == "10":   #request search
                 msg = request[2:]
                 self.search(clntSock, msg)
             elif request[:2] == "11":   #request streaming
                 msg = request[3:].split(",")   #cid, uid
+                self.recordHistory(msg[0], msg[1])
                 self.agentHandler(2, msg, clntSock)
             elif request[:2] == "20":
                 msg = request[3:]
@@ -163,7 +164,6 @@ class kufilxServer(object):
             clntSock.send(pickle.dumps(msg))
         else:   #without uid
             #select fetured thumnail's name
-            # TODO and get contentname from videos
             db_response = self.DBcommunicator(self.sqlGenerator(8, [str(int(label) - 100)]))
             print("thum request")
             msg = self.protocolGenerator(0, [db_response[0][0], str(db_response[0][1])])
@@ -227,6 +227,12 @@ class kufilxServer(object):
         elif type == 11:
             sql = "SELECT * FROM (SELECT videos.cid, videos.contentsname, sublist.mid FROM videos, sublist where videos.cid = sublist.cid) WHERE mid = '" + msgList[0] + "'"
             return sql
+        elif type ==12:
+            sql = "SELECT contentsname FROM videos WHERE cid = '" + msgList[0] + "'"
+            return sql
+        elif type == 13:
+            sql = "INSERT INTO history(mid, cid, watchdate) values ('" + msgList[0] + "', '" + msgList[1] + "', '" + msgList[2] + "')"
+            return sql
 
     def DBcommunicator(self, sql = ""):
         self.cursor.execute(sql)
@@ -243,8 +249,8 @@ class kufilxServer(object):
             msg = self.protocolGenerator(1, [str(newPort)])
             clntSock.send(pickle.dumps(msg))
             self.makeFileTransferAgent(newPort)
-        elif type == 2:
-            self.makeStreamingAgent(request[1], clntSock)
+        elif type == 2: #cid, uid
+            self.makeStreamingAgent(request[0], clntSock) #cid
         #type 1 => thumnail agent, caculate new portnum with uid (10000 + int(uid)) and tid with label and response portnum
         #type 2 => streaming agent, caculate new portnum with uid (12000 + int(uid)) and cid with cid and response portnum
 
@@ -317,44 +323,65 @@ class kufilxServer(object):
         return dbResponse
 
     def makeStreamingAgent(self, cid = "", clntSock = None):
+        print(cid)
+        dbResponse = self.DBcommunicator(self.sqlGenerator(12, [cid]))
+        print(dbResponse)
+        filename = dbResponse[0][0]
+
         if self.agentList.__len__() == 0:
-            print("make new agent")
+            p = Process(target=videoStreamer)
+            p.start()
+            print("Process Start")
+            conn, addr = self.agentSock.accept()
+            print("New Agent Ready address : ", addr)
+            portNum = 12000 + self.agentList.__len__()
+            self.agentList.append([[addr[0], portNum], 0, conn])
+            conn.send(pickle.dumps([addr[0], portNum]))  # send portNUM
+            clntSock.send(pickle.dumps("11" + "," + addr[0] + "," + str(portNum) + "," + filename))   # send portNum to client
+
+            threading._start_new_thread(self.listenAgentRequest, (conn, self.agentList.__len__() - 1))
             #make new process and wait for connection and get agent from self.agentSock.accept and send that addr, port to client
         else:
             isFound = False
             for i in range(0, self.agentList.__len__()):    #list [(addr, port), isAvailable(0 is available)]
                 if self.agentList[i][1] == 0:
-                    addr = self.agentList[i][0]
-                    port = self.agentList[i][1]
+                    addr = self.agentList[i][0][0]
+                    port = self.agentList[i][0][1]
                     isFound = True
-                    clntSock.send(pickle.dumps([addr, port]))
-                    print("available")
+                    clntSock.send(pickle.dumps("11" + "," + addr + "," + str(port) + "," + filename))
+                    print("Available Agent : ", addr, port)
                     break
             if isFound == False:
-                p = Process(target=vs.startAgent, args=())
+                p = Process(target=videoStreamer)
                 p.start()
                 conn, addr = self.agentSock.accept()
                 print("New Agent Ready address : ", addr)
                 portNum = 12000 + self.agentList.__len__()
-                self.agentList.append([addr[0], portNum])
-                conn.send(pickle.dumps(portNum)) #send portNUM
+                self.agentList.append([[addr[0], portNum], 0, conn])
+                conn.send(pickle.dumps([addr[0], portNum])) #send portNUM
+                clntSock.send(pickle.dumps("11" + "," + addr[0] + "," + str(portNum) + "," + filename))  # send portNum to client
 
-                threading._start_new_thread(self.listenAgentRequest, (conn, self.agentList.__len__()))
+                threading._start_new_thread(self.listenAgentRequest, (conn, self.agentList.__len__() - 1))
 
-                print("make new process")
 
     def listenAgentRequest(self, agentSock, index):
         while True:
             data = agentSock.recv(1024)
             data = pickle.loads(data)
 
-            #agent send siganl type 1, 2, 3 ## 1 is available, 2 is unavailable, 3 is request of path
+            #agent send siganl type 1, 2## 1 is unavailable, 2 is request of path
+            #agentList[[ipaddr, portnum], 0 or 1(0 is available)]
+            #agentList[index] is my info
             if data == "1":
-                print("it is available")
-            elif data == "2":
-                print("is is unavailable")
-            elif data == "3":
-                print("path request")
+                self.agentList[index][1] = 1
+
+    def subscribe(self, uid, cid):
+        print("subscribe")
+
+    def recordHistory(self, cid, uid):
+        print(cid, uid, "record History")
+        print(self.sqlGenerator(13, [uid, cid, datetime.datetime.now().strftime("20%y.%m.%d")]))
+        self.DBcommunicator(self.sqlGenerator(13, [uid, cid, datetime.datetime.now().strftime("20%y.%m.%d")]))
 
 if __name__ == "__main__":
     import GUI.guiHandler as gui

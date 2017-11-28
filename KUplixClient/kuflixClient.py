@@ -1,6 +1,7 @@
 import socket
 import threading
-import pickle, os
+import pickle, os, time, random
+import videoPlayer as player
 
 class kuflixClient(object):
     def __init__(self):
@@ -118,7 +119,12 @@ class kuflixClient(object):
                 self.sock.send(pickle.dumps("ack"))
             return searchList
         elif msgList[0] == "11":  # request streaming # pickle(addr, port)
-            print("streaming")
+            streamAddr = msgList[1]
+            streamPort = msgList[2]
+            rtpPort = str(random.randrange(40000, 60000))
+            filename = msgList[3]
+            print(streamAddr, streamPort, rtpPort, filename)
+            return [streamAddr, streamPort, rtpPort, filename]
         elif msgList[0] == "20":
             dataList = []
             dataList.append(msgList)
@@ -132,6 +138,15 @@ class kuflixClient(object):
             return dataList
         else:
             self.sock.close()
+
+    def startPlayer(self, cid = ""):
+        info = self.mainRequest(self.protocolGenerator(1, 3, [cid]))
+
+        time.sleep(1)
+
+        vp = player.videoPlayer()
+        vp.startPlayer(info[0], info[1], info[2], info[3])
+
 
     def listener(self):
         while True:
