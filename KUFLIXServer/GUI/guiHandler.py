@@ -6,27 +6,37 @@ class guiHandler(QtWidgets.QMainWindow):
         super(guiHandler, self).__init__(parent)
         self.searchEnable = 0 #0 is unavailable
         self.system = system
-        self.system.mainLoop()
         self.Form = Form
         ui = server.Ui_KUFLIXserver()
         ui.setupUi(Form)
-        ui.uploadButton.clicked.connect(lambda: self.upload())
-        ui.deleteButton.clicked.connect(lambda: self.delete())
+        ui.uploadButton.clicked.connect(lambda: self.upload(ui))
+        ui.deleteButton.clicked.connect(lambda: self.delete(ui))
         self.refresh(ui)
+        self.system.startMainLoop()
 
-    def upload(self):
+    def upload(self, ui):
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open Movie", QtCore.QDir.homePath())
         if fileName != '':
             self.system.uploadNewContents(fileName)
 
-    def delete(self):
-        cid = "3"
+        self.refresh(ui)
+
+    def delete(self, ui):
+        cid = str(self.contentsList[ui.itemList.currentRow()][0])
+
         self.system.deleteContents(cid)
+
+        self.refresh(ui)
 
     def refresh(self, ui):
         result = self.system.getContentsList()
 
+        self.contentsList = []
+
+        ui.itemList.clear()
+
         for i in range(0, result.__len__()):
+            self.contentsList.append(result[i])
             ui.itemList.addItem(result[i][1])
 
 

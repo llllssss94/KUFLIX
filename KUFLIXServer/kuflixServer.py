@@ -3,6 +3,7 @@ import threading
 import cx_Oracle
 import pickle
 import os, shutil, datetime
+import subprocess, time
 from multiprocessing import Process
 from videoStreamer import videoStreamer
 
@@ -15,12 +16,17 @@ class kufilxServer(object):
         self.agentList = []
         self.agentSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+        self.DBcommunicator(self.sqlGenerator(14, []))
+
         HOST = ''
         PORT = 7900
 
         self.agentSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.agentSock.bind((HOST, PORT))
         self.agentSock.listen(1)
+
+    def startMainLoop(self):
+        threading._start_new_thread(self.mainLoop, ())
 
     def mainLoop(self):
         HOST = ''
@@ -113,7 +119,7 @@ class kufilxServer(object):
             print(dbResponse)
             if dbResponse.__len__() != 0:
                 for i in range(0, dbResponse.__len__()):
-                    msg = str(dbResponse[i][1]) + "," + str(dbResponse[i][2])
+                    msg = str(dbResponse[i][1]) + "," + str(dbResponse[i][2]) + "," + str(dbResponse[i][0])   #[i][0] is cid
                     print(i, "and", dbResponse.__len__())
                     if i + 1 == dbResponse.__len__():
                         msg = self.protocolGenerator(2, [msg, "1"])
@@ -131,7 +137,7 @@ class kufilxServer(object):
             print(dbResponse)
             if dbResponse.__len__() != 0:
                 for i in range(0, dbResponse.__len__()):
-                    msg = str(dbResponse[i][1]) + "," + str(dbResponse[i][2])
+                    msg = str(dbResponse[i][1]) + "," + str(dbResponse[i][2]) + "," + str(dbResponse[i][0])   #[i][0] is cid
                     print(i, "and", dbResponse.__len__())
                     if i + 1 == dbResponse.__len__():
                         msg = self.protocolGenerator(2, [msg, "1"])
@@ -231,7 +237,10 @@ class kufilxServer(object):
             sql = "SELECT contentsname FROM videos WHERE cid = '" + msgList[0] + "'"
             return sql
         elif type == 13:
-            sql = "INSERT INTO history(mid, cid, watchdate) values ('" + msgList[0] + "', '" + msgList[1] + "', '" + msgList[2] + "')"
+            sql = "INSERT INTO history(mid, cid, watchdate) values ('" + msgList[0] + "', '" + msgList[1] + "', to_date('" + msgList[2] + "', 'yy/mm/dd'))"
+            return sql
+        elif type == 14:
+            sql = "DELETE FROM sessionlist"
             return sql
 
     def DBcommunicator(self, sql = ""):
@@ -271,23 +280,35 @@ class kufilxServer(object):
 
         print("connected by ", addr)
 
-        for i in range(1, 13):
+        lastSeq = 0
+        while lastSeq < 12:
             try :
                 rqst = conn.recv(1024)
                 rqst = pickle.loads(rqst)
+                print(rqst)
+                if rqst == "Done":
+                    break
             except EOFError as e:
                 continue
 
-            if rqst != "rqimg":
+            if rqst.find("rqimg") < 0:
                 continue
+            else:
+                index = rqst[5:]
+
+            print(lastSeq)
+
+            lastSeq = int(index)
 
             #send thumnail file
-            f = open("./thumnails/" + str(i) + ".png", "rb")  # actually path from database
-            size = os.path.getsize("./thumnails/" + str(i) + ".png")
+            f = open("./thumnails/" + index + ".png", "rb")  # actually path from database
+            size = os.path.getsize("./thumnails/" + index + ".png")
             frameNum = int(size / 1024) + 1
 
             conn.send(pickle.dumps(frameNum))
+            print(frameNum)
             ack = conn.recv(36)
+            print(ack)
 
             for i in range(0, frameNum):
                 data = f.read(1024)
@@ -296,6 +317,7 @@ class kufilxServer(object):
             print("Done")
 
             f.close()
+            time.sleep(0.3)
         print("image send success")
 
     def uploadNewContents(self, path = ""):
@@ -307,15 +329,24 @@ class kufilxServer(object):
         except TypeError as e:
             conNum = "1"
 
+        shutil.copy(path, "contents")
+
         path = path.split("/")[path.split("/").__len__() - 1]
+
+        absName = path[:path.__len__() - (path.split(".")[path.split(".").__len__()-1].__len__()+1)]    #filename without type
+
+        command = "ffmpeg -i /home/sangwon/Archive/KUFLIX/KUFLIXServer/contents/" + path + " -ab 160k -ac 2 -ar 44100 -vn /home/sangwon/Archive/KUFLIX/KUFLIXServer/contents/" + absName + ".wav"
+
+        subprocess.call(command, shell=True)
 
         print(self.sqlGenerator(3, [conNum, path, "0", "0", currentTime]))
         self.DBcommunicator(self.sqlGenerator(3, [conNum, path, "0", "0", currentTime]))
 
-        shutil.copy(path, "contents")
-
     def deleteContents(self, cid):
-        os.remove("./contents/" + self.DBcommunicator(self.sqlGenerator(6, [cid]))[0][0])
+        path = self.DBcommunicator(self.sqlGenerator(6, [cid]))[0][0]
+        absName = path[:path.__len__() - (path.split(".")[path.split(".").__len__() - 1].__len__() + 1)] + ".wav"
+        os.remove("./contents/" + absName)
+        os.remove("./contents/" + path)
         self.DBcommunicator(self.sqlGenerator(5, [cid]))
 
     def getContentsList(self):
@@ -380,8 +411,8 @@ class kufilxServer(object):
 
     def recordHistory(self, cid, uid):
         print(cid, uid, "record History")
-        print(self.sqlGenerator(13, [uid, cid, datetime.datetime.now().strftime("20%y.%m.%d")]))
-        self.DBcommunicator(self.sqlGenerator(13, [uid, cid, datetime.datetime.now().strftime("20%y.%m.%d")]))
+        print(self.sqlGenerator(13, [uid, cid, datetime.datetime.now().strftime("%y.%m.%d")]))
+        self.DBcommunicator(self.sqlGenerator(13, [uid, cid, datetime.datetime.now().strftime("%y.%m.%d")]))
 
 if __name__ == "__main__":
     import GUI.guiHandler as gui

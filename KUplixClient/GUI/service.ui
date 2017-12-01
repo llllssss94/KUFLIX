@@ -181,7 +181,7 @@ selection-background-color: rgb(97, 97, 97);</string>
        <x>20</x>
        <y>20</y>
        <width>121</width>
-       <height>151</height>
+       <height>131</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -197,7 +197,7 @@ selection-background-color: rgb(97, 97, 97);</string>
        <x>210</x>
        <y>20</y>
        <width>121</width>
-       <height>151</height>
+       <height>131</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -213,7 +213,7 @@ selection-background-color: rgb(97, 97, 97);</string>
        <x>400</x>
        <y>20</y>
        <width>121</width>
-       <height>151</height>
+       <height>131</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -229,7 +229,7 @@ selection-background-color: rgb(97, 97, 97);</string>
        <x>590</x>
        <y>20</y>
        <width>121</width>
-       <height>151</height>
+       <height>131</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -245,7 +245,7 @@ selection-background-color: rgb(97, 97, 97);</string>
        <x>20</x>
        <y>190</y>
        <width>121</width>
-       <height>151</height>
+       <height>131</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -261,7 +261,7 @@ selection-background-color: rgb(97, 97, 97);</string>
        <x>210</x>
        <y>190</y>
        <width>121</width>
-       <height>151</height>
+       <height>131</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -277,7 +277,7 @@ selection-background-color: rgb(97, 97, 97);</string>
        <x>400</x>
        <y>190</y>
        <width>121</width>
-       <height>151</height>
+       <height>131</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -293,7 +293,7 @@ selection-background-color: rgb(97, 97, 97);</string>
        <x>590</x>
        <y>190</y>
        <width>121</width>
-       <height>151</height>
+       <height>131</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -309,7 +309,7 @@ selection-background-color: rgb(97, 97, 97);</string>
        <x>20</x>
        <y>360</y>
        <width>121</width>
-       <height>151</height>
+       <height>131</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -325,7 +325,7 @@ selection-background-color: rgb(97, 97, 97);</string>
        <x>210</x>
        <y>360</y>
        <width>121</width>
-       <height>151</height>
+       <height>131</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -341,7 +341,7 @@ selection-background-color: rgb(97, 97, 97);</string>
        <x>400</x>
        <y>360</y>
        <width>121</width>
-       <height>151</height>
+       <height>131</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -357,7 +357,7 @@ selection-background-color: rgb(97, 97, 97);</string>
        <x>590</x>
        <y>360</y>
        <width>121</width>
-       <height>151</height>
+       <height>131</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -365,6 +365,258 @@ selection-background-color: rgb(97, 97, 97);</string>
      </property>
      <property name="text">
       <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="t_label1">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>150</y>
+       <width>121</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="t_label2">
+     <property name="geometry">
+      <rect>
+       <x>210</x>
+       <y>150</y>
+       <width>121</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="t_label3">
+     <property name="geometry">
+      <rect>
+       <x>400</x>
+       <y>150</y>
+       <width>121</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="t_label4">
+     <property name="geometry">
+      <rect>
+       <x>590</x>
+       <y>150</y>
+       <width>121</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="t_label5">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>320</y>
+       <width>121</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="t_label6">
+     <property name="geometry">
+      <rect>
+       <x>210</x>
+       <y>320</y>
+       <width>121</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="t_label7">
+     <property name="geometry">
+      <rect>
+       <x>400</x>
+       <y>320</y>
+       <width>121</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="t_label8">
+     <property name="geometry">
+      <rect>
+       <x>590</x>
+       <y>320</y>
+       <width>121</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="t_label9">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>490</y>
+       <width>121</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="t_label10">
+     <property name="geometry">
+      <rect>
+       <x>210</x>
+       <y>490</y>
+       <width>121</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="t_label11">
+     <property name="geometry">
+      <rect>
+       <x>400</x>
+       <y>490</y>
+       <width>121</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="t_label12">
+     <property name="geometry">
+      <rect>
+       <x>590</x>
+       <y>490</y>
+       <width>121</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
      </property>
     </widget>
    </widget>

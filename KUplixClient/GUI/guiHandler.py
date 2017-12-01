@@ -41,18 +41,18 @@ class guiHandler(object):
         ui.ID_lable.setText(self.system.id)
         ui.NAME_lable.setText(self.system.name)
         ui.RANK_label.setText(self.system.rank)
-        ui.thumnail1.setText(self.system.tmList[1][0])
-        ui.thumnail2.setText(self.system.tmList[2][0])
-        ui.thumnail3.setText(self.system.tmList[3][0])
-        ui.thumnail4.setText(self.system.tmList[4][0])
-        ui.thumnail5.setText(self.system.tmList[5][0])
-        ui.thumnail6.setText(self.system.tmList[6][0])
-        ui.thumnail7.setText(self.system.tmList[7][0])
-        ui.thumnail8.setText(self.system.tmList[8][0])
-        ui.thumnail9.setText(self.system.tmList[9][0])
-        ui.thumnail10.setText(self.system.tmList[10][0])
-        ui.thumnail11.setText(self.system.tmList[11][0])
-        ui.thumnail12.setText(self.system.tmList[12][0])
+        ui.t_label1.setText(self.system.tmList[1][0])
+        ui.t_label2.setText(self.system.tmList[2][0])
+        ui.t_label3.setText(self.system.tmList[3][0])
+        ui.t_label4.setText(self.system.tmList[4][0])
+        ui.t_label5.setText(self.system.tmList[5][0])
+        ui.t_label6.setText(self.system.tmList[6][0])
+        ui.t_label7.setText(self.system.tmList[7][0])
+        ui.t_label8.setText(self.system.tmList[8][0])
+        ui.t_label9.setText(self.system.tmList[9][0])
+        ui.t_label10.setText(self.system.tmList[10][0])
+        ui.t_label11.setText(self.system.tmList[11][0])
+        ui.t_label12.setText(self.system.tmList[12][0])
 
 
         ui.logout.clicked.connect(lambda: self.goBack())
@@ -71,24 +71,55 @@ class guiHandler(object):
         ui.thumnail11.clicked.connect(lambda: self.thumnailStart(self.system.tmList[11][1]))
         ui.thumnail12.clicked.connect(lambda: self.thumnailStart(self.system.tmList[12][1]))
 
+        ui.thumnail1.setIcon(QtGui.QIcon(QtGui.QPixmap("./thumnails/101.png")))
+        ui.thumnail1.setIconSize(QtCore.QSize(151, 121))
+        ui.thumnail2.setIcon(QtGui.QIcon(QtGui.QPixmap("./thumnails/102.png")))
+        ui.thumnail2.setIconSize(QtCore.QSize(151, 121))
+        ui.thumnail3.setIcon(QtGui.QIcon(QtGui.QPixmap("./thumnails/103.png")))
+        ui.thumnail3.setIconSize(QtCore.QSize(151, 121))
+        ui.thumnail4.setIcon(QtGui.QIcon(QtGui.QPixmap("./thumnails/104.png")))
+        ui.thumnail4.setIconSize(QtCore.QSize(151, 121))
+        ui.thumnail5.setIcon(QtGui.QIcon(QtGui.QPixmap("./thumnails/105.png")))
+        ui.thumnail5.setIconSize(QtCore.QSize(151, 121))
+        ui.thumnail6.setIcon(QtGui.QIcon(QtGui.QPixmap("./thumnails/106.png")))
+        ui.thumnail6.setIconSize(QtCore.QSize(151, 121))
+        ui.thumnail7.setIcon(QtGui.QIcon(QtGui.QPixmap("./thumnails/107.png")))
+        ui.thumnail7.setIconSize(QtCore.QSize(151, 121))
+        ui.thumnail8.setIcon(QtGui.QIcon(QtGui.QPixmap("./thumnails/108.png")))
+        ui.thumnail8.setIconSize(QtCore.QSize(151, 121))
+        ui.thumnail9.setIcon(QtGui.QIcon(QtGui.QPixmap("./thumnails/109.png")))
+        ui.thumnail9.setIconSize(QtCore.QSize(151, 121))
+        ui.thumnail10.setIcon(QtGui.QIcon(QtGui.QPixmap("./thumnails/110.png")))
+        ui.thumnail10.setIconSize(QtCore.QSize(151, 121))
+        ui.thumnail11.setIcon(QtGui.QIcon(QtGui.QPixmap("./thumnails/111.png")))
+        ui.thumnail11.setIconSize(QtCore.QSize(151, 121))
+        ui.thumnail12.setIcon(QtGui.QIcon(QtGui.QPixmap("./thumnails/112.png")))
+        ui.thumnail12.setIconSize(QtCore.QSize(151, 121))
+
+
+
+
         self.searchEnable = 1
 
     def getIndexinSearch(self, ui):
         if self.searchList.__len__() > 0:
-            index = self.searchList[ui.searchResult.currentRow()][1]
-            if index.find('Found') >= 0:
+            index = self.searchList[ui.searchResult.currentRow()][3]
+            print(index)
+            if index.find('Found') <= 0:
                 self.thumnailStart(index)
 
     def getIndexinRecent(self, ui):
         if self.recentList.__len__() > 0:
-            index = self.recentList[ui.listWidget.currentRow()][1]
-            if index.find('Found') >= 0:
+            index = self.recentList[ui.listWidget.currentRow()][3]
+            print(index)
+            if index.find('Found') <= 0:
                 self.thumnailStart(index)
 
     def getIndexinSub(self, ui):
         if self.subList.__len__() > 0:
-            index = self.subList[ui.subList.currentRow()][1]
-            if index.find('Found') >= 0:
+            index = self.subList[ui.subList.currentRow()][3]
+            print(index)
+            if index.find('Found') <= 0:
                 self.thumnailStart(index)
 
     def thumnailStart(self, index):

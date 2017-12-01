@@ -147,55 +147,57 @@ class kuflixClient(object):
         vp = player.videoPlayer()
         vp.startPlayer(info[0], info[1], info[2], info[3])
 
-
     def listener(self):
         while True:
             respond = self.sock.recv(1024)
 
     def requestAgent(self, types = 0, label = ""):
         #request
-        if types == 0:
-            #protocol 1 - 1 with label, uid
-            reponse = self.mainRequest(self.protocolGenerator(1, 1, [label]))
-            print(reponse)
+        #protocol 1 - 1 with label, uid
+        reponse = self.mainRequest(self.protocolGenerator(1, 1, [label]))
+        print(reponse)
 
-            HOST = "127.0.0.1"
-            PORT = int(reponse)
+        HOST = "127.0.0.1"
+        PORT = int(reponse)
 
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            while True:
-                try:
-                    s.connect((HOST, PORT))
-                except ConnectionRefusedError as e:
-                    continue
-                break
-            print("connected")
-            for i in range(1, 13):
-                try :
-                    size = os.path.getsize("./thumnails/" + str(int(label) + i) + ".png")
-                except FileNotFoundError as e:
-                    #when server response port_num, then connect to new socket to receieve thumnail file
-                    f = open("./thumnails/" + str(int(label) + i) + ".png", "wb")
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        while True:
+            try:
+                s.connect((HOST, PORT))
+            except ConnectionRefusedError as e:
+                continue
+            break
+        print("connected")
+        for i in range(1, 13):
+            try :
+                os.path.getsize("./thumnails/" + str(int(label) + i) + ".png")
+            except FileNotFoundError as e:
+                #when server response port_num, then connect to new socket to receieve thumnail file
+                self.requestThumnail(label, i, s)
+                time.sleep(0.2)
+        print("Image recieve success.")
+        s.send(pickle.dumps("Done"))
+        s.close()
 
-                    s.send(pickle.dumps("rqimg"))
+    def requestThumnail(self, label, i, s):
+        # when server response port_num, then connect to new socket to receieve thumnail file
+        f = open("./thumnails/" + str(int(label) + i) + ".png", "wb")
 
-                    data = s.recv(128)
-                    print(data)
-                    frameNum = pickle.loads(data)
+        s.send(pickle.dumps("rqimg" + str(i)))
 
-                    s.send("ack".encode("utf-8"))
+        data = s.recv(128)
+        print(data)
+        frameNum = pickle.loads(data)
 
-                    print(frameNum)
+        s.send("ack".encode("utf-8"))
 
-                    for i in range(0, frameNum):
-                        data = s.recv(1024)
-                        f.write(data)
-                    print("Done")
-                    f.close()
-            print("Image recieve success.")
-            s.close()
-        else:
-            print("streamingr request")
+        print(frameNum)
+
+        for i in range(0, frameNum):
+            data = s.recv(1024)
+            f.write(data)
+        print("Done")
+        f.close()
 
     def setUp(self, sock):
         # id
