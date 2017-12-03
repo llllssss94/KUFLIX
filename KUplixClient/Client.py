@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import messagebox as tkMessageBox
 from PIL import Image, ImageTk
 import socket, threading, sys, traceback, os
-import pickle ,cv2
+import pickle ,cv2, wave, pyaudio
 
 from RtpPacket import RtpPacket
 
@@ -29,6 +29,13 @@ class Client:
     RTSP_VER = "RTSP/1.0"
     TRANSPORT = "RTP/UDP"
 
+    p = pyaudio.PyAudio()
+    soundStream = bytearray()
+
+    stream = p.open(format=8,
+                    channels=2,
+                    rate=44100,
+                    output=True)
 
     # Initiation..
     def __init__(self, master, serveraddr, serverport, rtpport, filename):
@@ -38,6 +45,7 @@ class Client:
         self.serverAddr = serveraddr
         self.serverPort = int(serverport)
         self.rtpPort = int(rtpport)
+        self.wavePort = self.rtpPort + 20000
         self.fileName = filename
         self.rtspSeq = 0
         self.sessionId = 0
@@ -97,6 +105,7 @@ class Client:
         if self.state == self.READY:
             # Create a new thread to listen for RTP packets
             threading.Thread(target=self.listenRtp).start()
+            threading.Thread(target=self.listenwave).start()
             self.playEvent = threading.Event()
             self.playEvent.clear()
             self.sendRtspRequest(self.PLAY)
@@ -130,7 +139,7 @@ class Client:
                         self.updateMovie(self.writeFrame(rtpPacket.getPayload()))
 
                 if isMiddle:
-                    data = packetChunk[:packetChunk.find("EOF".encode("utf-8"))]
+                    data = packetChunk[packetChunk.find("EOF".encode("utf-8")):]
                 else:
                     data = bytearray()
             except:
@@ -143,6 +152,26 @@ class Client:
                 if self.teardownAcked == 1:
                     self.rtpSocket.shutdown(socket.SHUT_RDWR)
                     self.rtpSocket.close()
+                    break
+
+    def listenwave(self):
+        """Listen for wave packets."""
+        while True:
+            try:
+                while True:
+                    data = self.waveSocket.recv(44204)
+
+                    self.stream.write(data)
+            except:
+                # Stop listening upon requesting PAUSE or TEARDOWN
+                if self.playEvent.isSet():
+                    break
+
+                # Upon receiving ACK for TEARDOWN request,
+                # close the RTP socket
+                if self.teardownAcked == 1:
+                    self.waveSocket.shutdown(socket.SHUT_RDWR)
+                    self.waveSocket.close()
                     break
 
     def writeFrame(self, data):
@@ -298,8 +327,10 @@ class Client:
         #-------------
         # Create a new datagram socket to receive RTP packets from the server
         self.rtpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.waveSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         # Set the timeout value of the socket to 0.5sec
         self.rtpSocket.settimeout(0.5)
+        self.waveSocket.settimeout(0.5)
 
         try:
         # Bind the socket to the address using the RTP port given by the client user
@@ -307,6 +338,11 @@ class Client:
             self.rtpSocket.bind(('',self.rtpPort))
         except:
             tkMessageBox.showwarning('Unable to Bind', 'Unable to bind PORT=%d' %self.rtpPort)
+        try:
+            # Bind the socket to the address using the RTP port given by the client user
+            self.waveSocket.bind(('', self.wavePort))
+        except:
+            tkMessageBox.showwarning('Unable to Bind', 'Unable to bind PORT=%d' % self.wavePort)
 
     def handler(self):
         """Handler on explicitly closing the GUI window."""

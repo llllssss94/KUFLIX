@@ -103,21 +103,21 @@ class guiHandler(object):
 
     def getIndexinSearch(self, ui):
         if self.searchList.__len__() > 0:
-            index = self.searchList[ui.searchResult.currentRow()][3]
+            index = self.searchList[ui.searchResult.currentRow()][1]
             print(index)
             if index.find('Found') <= 0:
                 self.thumnailStart(index)
 
     def getIndexinRecent(self, ui):
         if self.recentList.__len__() > 0:
-            index = self.recentList[ui.listWidget.currentRow()][3]
+            index = str(int(self.recentList[ui.listWidget.currentRow()][3]) + 1)
             print(index)
             if index.find('Found') <= 0:
                 self.thumnailStart(index)
 
     def getIndexinSub(self, ui):
         if self.subList.__len__() > 0:
-            index = self.subList[ui.subList.currentRow()][3]
+            index = str(int(self.subList[ui.subList.currentRow()][3]) + 1)
             print(index)
             if index.find('Found') <= 0:
                 self.thumnailStart(index)
@@ -129,6 +129,7 @@ class guiHandler(object):
         keyword = ui.search.toPlainText()
         self.searchList = []
         result = self.system.mainRequest(self.system.protocolGenerator(1, 2, [keyword]))
+        print(result)
         ui.searchResult.clear()
         for i in range(0, result.__len__()):
             ui.searchResult.addItem(result[i][2])
@@ -169,6 +170,7 @@ class guiHandler(object):
         if types == "0":
             self.recentList = []
             result = self.system.mainRequest(self.system.protocolGenerator(1, 4, ["200"]))
+            print(result)
             ui.listWidget.clear()
             for i in range(0, result.__len__()):
                 item = result[i][1] + " || " + result[i][2]
@@ -177,6 +179,7 @@ class guiHandler(object):
         else:
             self.subList = []
             result = self.system.mainRequest(self.system.protocolGenerator(1, 4, ["300"]))
+            print(result)
             ui.subList.clear()
             for i in range(0, result.__len__()):
                 self.subList.append(result[i])

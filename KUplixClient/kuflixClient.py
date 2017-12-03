@@ -121,7 +121,7 @@ class kuflixClient(object):
         elif msgList[0] == "11":  # request streaming # pickle(addr, port)
             streamAddr = msgList[1]
             streamPort = msgList[2]
-            rtpPort = str(random.randrange(40000, 60000))
+            rtpPort = str(random.randrange(20000, 40000))
             filename = msgList[3]
             print(streamAddr, streamPort, rtpPort, filename)
             return [streamAddr, streamPort, rtpPort, filename]

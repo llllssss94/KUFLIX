@@ -64,3 +64,11 @@ class VideoStream:
     def frameNbr(self):
         """Get frame number."""
         return self.frameNum
+
+    def getFps(self):
+        return self.capture.get(cv2.CAP_PROP_FPS)
+
+    def getWholeFrameNum(self):
+        return self.wholeFrameNum
+
+
