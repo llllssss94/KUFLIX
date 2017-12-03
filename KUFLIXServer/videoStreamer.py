@@ -1,47 +1,59 @@
 import socket
 import cv2
+import pickle
+import threading, time
+import sys, socket
+from ServerWorker import ServerWorker
 
 class videoStreamer(object):
+    def __init__(self):
+        # connect to main server as agent
+        HOST = ""
+        PORT = 7900
+        self.conNum = 0
 
-    def streaming(self):
-        UDP_IP = "127.0.0.1"
-        UDP_PORT = 5005
+        self.mainSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.mainSock.connect((HOST, PORT))
 
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.bind((UDP_IP, UDP_PORT))
+        print("Connected to MainServer.")
 
-        self.capture = cv2.VideoCapture("SampleVideo_1280x720_1mb.mp4")
-        self.frameNum = int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
-        print("number of frames", self.frameNum)
+        # get RTSP port from client
+        self.portNum = self.mainSock.recv(1024)
+        self.portNum = pickle.loads(self.portNum)
+        print("Agent Port Num set : ", self.portNum)
 
-        data, self.clntAddr = self.sock.recvfrom(1024)
-        data = data.decode("utf-8", "ignore")
-        print(data)
-        data = bin(self.frameNum)
-        data = data.encode("utf-8")
-        self.sock.sendto(data, self.clntAddr)
+        #start main listener
+        threading._start_new_thread(self.checkAvailable, ())
 
-        self.sendFrame()
+        # for RTSP communication
+        SERVER_PORT = int(self.portNum[1])
 
-        self.sock.close()
+        rtspSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        rtspSocket.bind(('', SERVER_PORT))
+        rtspSocket.listen(3)
 
-    def sendFrame(self):
+        print("AgentReady")
 
-        for i in range(0, self.frameNum):
-            ret, data = cv2.VideoCapture.read(self.capture)
+        while True:
+            clientInfo = {}
+            clientInfo['rtspSocket'] = rtspSocket.accept()
+            self.conNum += 1
 
-            cv2.imwrite("./tmp/temp.png", data)
+            if self.conNum >= 3:    ## 1 is unavailable
+                self.mainSock.send(pickle.dumps("2"))
+                # send to mainserver i'm unavailable
+            print("Connected by", clientInfo['rtspSocket'])
 
-            f = open("./tmp/temp.png", "rb")
+            ServerWorker(clientInfo, self.mainSock).run()
 
-            data = f.read(1024)
-            while(data):
-                self.sock.sendto(data, self.clntAddr)
-                data = f.read(1024)
-            self.sock.sendto("EOF".encode("utf-8"), self.clntAddr)
+    def checkAvailable(self):
+        while True:
+            command = self.mainSock.recv(64)
+            try:
+                command = pickle.loads(command)
+            except EOFError as e:
+                continue
+            if command == "out":
+                self.conNum -= 1
 
-            f.close()
-
-if __name__ == "__main__":
-    streamer = videoStreamer()
-    streamer.streaming()
+            time.sleep(60)

@@ -1,6 +1,7 @@
 import socket
 import threading
-import pickle, os
+import pickle, os, time, random
+import videoPlayer as player
 
 class kuflixClient(object):
     def __init__(self):
@@ -20,16 +21,19 @@ class kuflixClient(object):
                 return msg
         else:   #main mode
             if type == 0:  # 00 ##[00 | LABEL | UID]    #first page info
-                msg = "00" + "," + msgList[0] + "," + msgList[1]
+                msg = "00" + "," + msgList[0] + "," + self.uid
                 return msg
             elif type == 1:  # 01 ##[01 | LABEL | UID]  #thumnail file transfer request
-                msg = "01" + "," + msgList[0] + "," + msgList[1]
+                msg = "01" + "," + msgList[0] + "," + self.uid
                 return msg
             elif type == 2:  # 10 ##[10 | MESSAGE | UID]    #request search
-                msg = "10" + "," + msgList[0] + "," + msgList[1]
+                msg = "10" + "," + msgList[0] + "," + self.uid
                 return msg
-            else:  # 11 ##[11 | VIDEO_ID | UID]     #request video streaming
-                msg = "11" + "," + msgList[0] + "," + msgList[1]
+            elif type == 3:  # 11 ##[11 | VIDEO_ID | UID]     #request video streaming
+                msg = "11" + "," + msgList[0] + "," + self.uid
+                return msg
+            else:   # 20 ##[20 | LABEL | UID]   #type = 4, label(200 => recent)
+                msg = "20" + "," + msgList[0] + "," + self.uid
                 return msg
 
     def loginRequest(self, msg):
@@ -71,6 +75,9 @@ class kuflixClient(object):
 
         #Through return value, system signal to GUIhandler what has to be
 
+    def requestList(self):
+        print("")
+
     def mainLoop(self, port):
         HOST = "127.0.0.1"
         PORT = 8100  # port
@@ -111,10 +118,34 @@ class kuflixClient(object):
                 searchList.append(msgList)
                 self.sock.send(pickle.dumps("ack"))
             return searchList
-        elif msgList[0] == "11":  # request streaming
-            print("streaming")
+        elif msgList[0] == "11":  # request streaming # pickle(addr, port)
+            streamAddr = msgList[1]
+            streamPort = msgList[2]
+            rtpPort = str(random.randrange(20000, 40000))
+            filename = msgList[3]
+            print(streamAddr, streamPort, rtpPort, filename)
+            return [streamAddr, streamPort, rtpPort, filename]
+        elif msgList[0] == "20":
+            dataList = []
+            dataList.append(msgList)
+            self.sock.send(pickle.dumps("ack"))
+            while msgList[3] != "1":
+                data = self.sock.recv(1024)
+                data = pickle.loads(data)
+                msgList = data.split(",")
+                dataList.append(msgList)
+                self.sock.send(pickle.dumps("ack"))
+            return dataList
         else:
             self.sock.close()
+
+    def startPlayer(self, cid = ""):
+        info = self.mainRequest(self.protocolGenerator(1, 3, [cid]))
+
+        time.sleep(1)
+
+        vp = player.videoPlayer()
+        vp.startPlayer(info[0], info[1], info[2], info[3])
 
     def listener(self):
         while True:
@@ -122,60 +153,63 @@ class kuflixClient(object):
 
     def requestAgent(self, types = 0, label = ""):
         #request
-        if types == 0:
-            #protocol 1 - 1 with label, uid
-            reponse = self.mainRequest(self.protocolGenerator(1, 1, [label, self.uid]))
-            print(reponse)
+        #protocol 1 - 1 with label, uid
+        reponse = self.mainRequest(self.protocolGenerator(1, 1, [label]))
+        print(reponse)
 
-            HOST = "127.0.0.1"
-            PORT = int(reponse)
+        HOST = "127.0.0.1"
+        PORT = int(reponse)
 
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            while True:
-                try:
-                    s.connect((HOST, PORT))
-                except ConnectionRefusedError as e:
-                    continue
-                break
-            print("connected")
-            for i in range(1, 13):
-                try :
-                    size = os.path.getsize("./thumnails/" + str(int(label) + i) + ".png")
-                except FileNotFoundError as e:
-                    #when server response port_num, then connect to new socket to receieve thumnail file
-                    f = open("./thumnails/" + str(int(label) + i) + ".png", "wb")
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        while True:
+            try:
+                s.connect((HOST, PORT))
+            except ConnectionRefusedError as e:
+                continue
+            break
+        print("connected")
+        for i in range(1, 13):
+            try :
+                os.path.getsize("./thumnails/" + str(int(label) + i) + ".png")
+            except FileNotFoundError as e:
+                #when server response port_num, then connect to new socket to receieve thumnail file
+                self.requestThumnail(label, i, s)
+                time.sleep(0.2)
+        print("Image recieve success.")
+        s.send(pickle.dumps("Done"))
+        s.close()
 
-                    s.send(pickle.dumps("rqimg"))
+    def requestThumnail(self, label, i, s):
+        # when server response port_num, then connect to new socket to receieve thumnail file
+        f = open("./thumnails/" + str(int(label) + i) + ".png", "wb")
 
-                    data = s.recv(128)
-                    print(data)
-                    frameNum = pickle.loads(data)
+        s.send(pickle.dumps("rqimg" + str(i)))
 
-                    s.send("ack".encode("utf-8"))
+        data = s.recv(128)
+        print(data)
+        frameNum = pickle.loads(data)
 
-                    print(frameNum)
+        s.send("ack".encode("utf-8"))
 
-                    for i in range(0, frameNum):
-                        data = s.recv(1024)
-                        f.write(data)
-                    print("Done")
-                    f.close()
-            print("Image recieve success.")
-            s.close()
-        else:
-            print("streamingr request")
+        print(frameNum)
+
+        for i in range(0, frameNum):
+            data = s.recv(1024)
+            f.write(data)
+        print("Done")
+        f.close()
 
     def setUp(self, sock):
         # id
-        self.id = self.mainRequest(self.protocolGenerator(1, 0, ["000", "1"]))[1]
+        self.id = self.mainRequest(self.protocolGenerator(1, 0, ["000"]))[1]
         print(self.id)
 
         # name
-        self.name = self.mainRequest(self.protocolGenerator(1, 0, ["001", "1"]))[1]
+        self.name = self.mainRequest(self.protocolGenerator(1, 0, ["001"]))[1]
         print(self.name)
 
         # rank
-        self.rank = self.mainRequest(self.protocolGenerator(1, 0, ["002", "1"]))[1]
+        self.rank = self.mainRequest(self.protocolGenerator(1, 0, ["002"]))[1]
         if self.rank == "0":
             self.rank = "19+"
         else:
@@ -189,7 +223,7 @@ class kuflixClient(object):
         for i in range(1, 13):
             label = str(100 + i)
             print(label)
-            self.tmList[i] = self.mainRequest(self.protocolGenerator(1, 0, [label, self.uid]))
+            self.tmList[i] = self.mainRequest(self.protocolGenerator(1, 0, [label]))
             print(self.tmList[i])
         print("over")
 
