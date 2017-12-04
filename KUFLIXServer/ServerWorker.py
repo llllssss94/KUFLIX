@@ -22,10 +22,11 @@ class ServerWorker:
 
     clientInfo = {}
 
-    def __init__(self, clientInfo, mainSocket = None):
+    def __init__(self, clientInfo, mainSocket = None, agentSeqNum = None):
         self.clientInfo = clientInfo
         self.waveFile = None
         self.mainSock = mainSocket
+        self.agentSeqNum = agentSeqNum
 
     def run(self):
         threading.Thread(target=self.recvRtspRequest).start()
@@ -35,8 +36,8 @@ class ServerWorker:
         connSocket = self.clientInfo['rtspSocket'][0]
         while True:
             data = connSocket.recv(256)
-            data = pickle.loads(data)
             if data:
+                data = pickle.loads(data)
                 print("Data received:", data)
                 self.processRtspRequest(data)
 
@@ -115,6 +116,8 @@ class ServerWorker:
 
             # Close the RTP socket
             self.clientInfo['rtpSocket'].close()
+
+            self.mainSock.send(pickle.dumps("out," + str(self.agentSeqNum)))
 
     def sendWave(self):
         """Send RTP packets over UDP."""

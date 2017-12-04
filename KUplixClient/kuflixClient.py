@@ -37,7 +37,7 @@ class kuflixClient(object):
                 return msg
 
     def loginRequest(self, msg):
-        HOST = "127.0.0.1"
+        HOST = "localhost"
         PORT = 8080
 
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

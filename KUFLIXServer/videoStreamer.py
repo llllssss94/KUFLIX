@@ -27,6 +27,7 @@ class videoStreamer(object):
 
         # for RTSP communication
         SERVER_PORT = int(self.portNum[1])
+        self.agentSeqNum = SERVER_PORT - 12000
 
         rtspSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         rtspSocket.bind(('', SERVER_PORT))
@@ -40,11 +41,14 @@ class videoStreamer(object):
             self.conNum += 1
 
             if self.conNum >= 3:    ## 1 is unavailable
+                self.mainSock.send(pickle.dumps("1"))
+            else:
                 self.mainSock.send(pickle.dumps("2"))
                 # send to mainserver i'm unavailable
             print("Connected by", clientInfo['rtspSocket'])
+            print("Connection num", self.conNum)
 
-            ServerWorker(clientInfo, self.mainSock).run()
+            ServerWorker(clientInfo, self.mainSock, self.agentSeqNum).run()
 
     def checkAvailable(self):
         while True:
@@ -54,6 +58,7 @@ class videoStreamer(object):
             except EOFError as e:
                 continue
             if command == "out":
+                print("client out")
                 self.conNum -= 1
 
             time.sleep(60)

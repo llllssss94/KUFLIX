@@ -400,11 +400,22 @@ class kufilxServer(object):
             data = agentSock.recv(1024)
             data = pickle.loads(data)
 
+            if data:
+                print("agent sent", data)
+
             #agent send siganl type 1, 2## 1 is unavailable, 2 is request of path
             #agentList[[ipaddr, portnum], 0 or 1(0 is available)]
             #agentList[index] is my info
             if data == "1":
+                print("Agent Num (", index, ") send Full signal")
                 self.agentList[index][1] = 1
+            elif data.split(",")[0] == "out":
+                self.agentList[index][2].send(pickle.dumps("out"))
+                data = agentSock.recv(1024)
+                data = pickle.loads(data)
+                print("after get client out siganl send out signal to agent and wait agent signal")
+                print(data)
+                self.agentList[index][1] = 0
 
     def subscribe(self, uid, cid):
         print("subscribe")

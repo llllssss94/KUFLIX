@@ -15,6 +15,7 @@ class guiHandler(object):
         ui.join.clicked.connect(lambda: self.goToJoin())
         ui.login.clicked.connect(lambda: self.login(ui))
 
+
     def login(self, ui):
         id = ui.id.toPlainText()
         passwd = ui.passwd.toPlainText()

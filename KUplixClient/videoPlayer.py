@@ -22,7 +22,7 @@ class videoPlayer(object):
 
         # Create a new client
         app = player.Client(root, self.serverAddr, self.serverPort, self.rtpPort, self.filename)
-        app.master.title("RTPClient")
+        app.master.title("KUFLIX Ver1.0")
         root.mainloop()
 
     def signal_handler(signal, frame):
