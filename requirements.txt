@@ -20,7 +20,7 @@ olefile==0.44
 onboard==1.2.0
 oneconf==0.3.9
 pexpect==4.0.1
-Pillow==4.3.0
+Pillow==6.2.0
 piston-mini-client==0.7.5
 psutil==3.4.2
 ptyprocess==0.5
