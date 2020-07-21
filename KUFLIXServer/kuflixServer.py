@@ -9,7 +9,7 @@ from videoStreamer import videoStreamer
 
 class kufilxServer(object):
     def __init__(self):
-        self.dbConn = cx_Oracle.connect("scott/tiger@117.16.136.70:1521/orcl")
+        self.dbConn = cx_Oracle.connect("scott/tiger@xxx.xxx.xxx.xxx:1521/orcl")
         self.cursor = self.dbConn.cursor()
         self.clientNum = 0
         self.connectionList = {}
