@@ -11,7 +11,7 @@ class loginServer(object):
 
         self.clientNum = 0;
         self.connectionList = {}
-        self.dbConn = cx_Oracle.connect("scott/tiger@117.16.136.70:1521/orcl")
+        self.dbConn = cx_Oracle.connect("scott/tiger@xxx.xxx.xxx.xxx:1521/orcl")
         self.cursor = self.dbConn.cursor()
 
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
