@@ -22,7 +22,7 @@ oneconf==0.3.9
 pexpect==4.0.1
 Pillow==4.3.0
 piston-mini-client==0.7.5
-psutil==3.4.2
+psutil==5.6.6
 ptyprocess==0.5
 pyasn1==0.1.9
 PyAudio==0.2.11
