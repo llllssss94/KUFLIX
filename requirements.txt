@@ -12,7 +12,7 @@ httplib2==0.9.1
 idna==2.0
 louis==2.6.4
 lxml==3.5.0
-Mako==1.0.3
+Mako==1.2.2
 MarkupSafe==0.23
 numpy==1.13.3
 oauthlib==1.0.3
